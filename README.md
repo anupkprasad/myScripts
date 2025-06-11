@@ -1,1 +1,1 @@
-# My Scripts Collection
+# Scripts for custom uses
