@@ -1,0 +1,8 @@
+open_receptor ./filename.pdb
+open_ligand ./filename.pdb
+docking_correlation 1
+docking_refine 3
+max_docking_solutions 100
+docking_main_scan 20
+activate_docking
+save_matrix ./filename_matrix.hex
