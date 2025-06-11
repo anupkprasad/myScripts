@@ -31,8 +31,6 @@ proc trajLoad {{datapath} {pattern "None"} {step 10} {wrap "No"} {sscache "NO"}}
 }
 
 
-
-
 proc trajWritepdb {{molid top} {sel "protein"} {frames "None"}} {
 	## write pdb for trajectory
 	set sel [atomselect $molid $sel]
@@ -225,36 +223,6 @@ proc loadCifAll {} {
 }
 
 
-
-#proc loadCifAll {} {
-	#for { set seed 1 } { $seed < 301 } { incr seed } {
-		#for { set smp 0 } { $smp < 5 } { incr smp } {
-			#set subdir "seed-${seed}_sample-${smp}"
-			#if {$seed ==1 && $smp == 0} {
-			    #mol new ./$subdir/model.cif
-			#} else {
-				#mol addfile ./$subdir/model.cif
-			#}
-		#}
-	#}
-#}
-
-
-
-#proc loadCifAll {} {
-	#set dir [lsort -increasing [glob seed*]]
-	#set i 1
-	#foreach d $dir {
-		#puts $d
-		#if {$i ==1} {
-			#mol new ./$d/model.cif
-		#} else {
-				#mol addfile ./$d/model.cif
-		#}
-		#incr i
-		#}
-#}
-
 proc loadCifAF3 {} {
 	set dir [lsort -increasing [glob seed*]]
 	set i 1
@@ -313,67 +281,6 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr}} {
     }
 }
 
-
-proc playEachMolecule {} {
-    if {$::mol_index >= [llength $::mol_list]} {
-        puts "Done playing all molecules."
-        return
-    }
-
-    set molid [lindex $::mol_list $::mol_index]
-    mol top $molid
-    mol on $molid
-
-    set nreps [molinfo $molid get numreps]
-    for {set i 0} {$i < $nreps} {incr i} {
-        mol showrep $molid $i on
-    }
-
-    set ::frame 0
-    set ::nframes [molinfo $molid get numframes]
-
-    if {$::nframes < 2} {
-        puts "Skipping molecule $molid (no trajectory)"
-        incr ::mol_index
-        after 100 playEachMolecule
-        return
-    }
-
-    puts "Playing trajectory for molecule $molid..."
-
-    playFrame
-}
-
-proc playFrame {} {
-    if {$::frame < $::nframes} {
-        animate goto $::frame
-        incr ::frame
-        after 100 update
-        after 500 playFrame
-    } else {
-        set molid [lindex $::mol_list $::mol_index]
-        puts "Finished molecule $molid"
-        mol off $molid
-        incr ::mol_index
-        after 100 playEachMolecule
-    }
-}
-
-
-proc playAllMol {} {
-	# Global control variables
-	set ::mol_index 0
-	set ::mol_list [molinfo list]
-	# Start the playback
-	playEachMolecule
-}
-
-
-
-
-
-
-
 proc addCifAF3 {{rename ""}} {
     set dir [lsort -increasing [glob seed*]]
     foreach d $dir {
@@ -390,9 +297,6 @@ proc addCifAF3 {{rename ""}} {
     }
 }
 
-
-
-	
 
 proc trajSave {{outfile traj.trr}} {
 	set sel [atomselect top all]

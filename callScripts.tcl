@@ -13,6 +13,7 @@ source "$pathVmdScript/centroid/propgate2.tcl"
 source "$pathVmdScript/mdSetup/systemSetup.tcl"
 source "$pathVmdScript/mdSetup/phosPTM.tcl"
 source "$pathVmdScript/systemInfo.tcl"
+source "$pathVmdScript/graphic/playAllMol.tcl"
 
 
 source "$pathVmdScript/mdAnalysis/ssTraj.tcl"
