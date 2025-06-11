@@ -1,0 +1,92 @@
+#############################################################
+## JOB DESCRIPTION                                         ##
+#############################################################
+
+# Uperin monomer in a Water Box
+
+#############################################################
+## ADJUSTABLE PARAMETERS                                   ##
+#############################################################
+
+
+structure           ../ionized.psf
+coordinates         ../ionized.pdb
+
+# Continuing a job from the restart files
+
+set inputpath ../equilibration/equil_out
+
+binCoordinates     $inputpath.restart.coor
+binVelocities      $inputpath.restart.vel  ;# remove the "temperature" entry if you use this!
+extendedSystem     $inputpath.restart.xsc 
+
+
+binaryoutput		off
+outputname			prod1
+
+
+#############################################################
+## SIMULATION PARAMETERS                                   ## 
+#############################################################
+
+# Input
+paraTypeCharmm	    on
+parameters          ../parameter/par_all36m_prot.prm
+parameters          ../parameter/par_all36_lipid.prm
+parameters          ../parameter/par_all36_carb.prm
+parameters          ../parameter/par_all36_cgenff.prm
+parameters          ../parameter/toppar_water_ions_namd_topology.str
+parameters          ../parameter/toppar_all36_lipid_detergent.str 
+
+##############  Colvar   ###########
+
+colvars             on
+colvarsConfig       ../parameter/com_colvar.in
+#colvarsInput        ../$inputpath.restart.colvars.state
+
+
+# Output
+restartfreq         50000     ;# 50000steps = every 100ps
+dcdfreq             50000
+xstFreq             50000
+outputEnergies      50000
+outputPressure      50000
+
+
+# Integrator Parameters
+timestep            2.0  ;# 2fs/step
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1
+fullElectFrequency  2  
+stepspercycle       10
+
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              12.0
+switching           on
+switchdist          10.0
+pairlistdist        14.0
+
+
+
+wrapAll		    	on
+zeroMomentum        yes
+
+
+# PME (for full-system periodic electrostatics)
+PME                 yes
+PMEGridSpacing      1.0
+
+
+# Constant Temperature Control
+# use lighter damping now that system is equilibrated
+langevin			on
+langevinDamping		1
+langevinTemp		310
+langevinHydrogen	on
+
+
+
+run             	500000000

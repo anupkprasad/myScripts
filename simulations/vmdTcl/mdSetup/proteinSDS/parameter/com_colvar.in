@@ -1,0 +1,30 @@
+### fix SDS molecules
+
+colvarsTrajFrequency 	50000
+colvarsRestartFrequency 50000
+colvar {
+
+	name			com_SDS
+			
+	distance {
+		group1 {
+				}
+		group2 {
+			dummyAtom (0, 0, 0)
+				}
+			}	
+}
+
+harmonic {
+	colvars 	 com_SDS  # com_peptidePP1  com_peptidePP2
+      
+      forceConstant   100
+      centers          0.0  # 0.0 0.0  
+}
+
+
+
+
+
+
+
