@@ -239,8 +239,17 @@ proc loadCifAF3 {} {
 }
 
 
-proc loadCifAF3Multijobs {{prefix ""} {refStr}} {
+proc loadCifAF3Multijobs {{prefix ""} {refStr ${refStructures}/DCLK1_KD_tail.pdb} {KDResids "0 to 258"}} {
+	### load and represent refernce structure 
 	mol new $refStr
+	mol modselect 0 top "protein and resid ${KDResids}"
+	mol modcolor 0 top ColorID 8
+    # Create a new representation for non-KD
+	mol selection "protein and not resid ${KDResids}"
+	mol representation NewCartoon
+	mol color ColorID 2
+	mol addrep top
+
     # Set the base path
     set base_path [pwd]
     set base_path [file normalize "."]
@@ -248,7 +257,6 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr}} {
 
     # Get the list of all entries in the directory
     set entries [glob -nocomplain -directory $base_path *]
-
     # Filter only directories with the given prefix
     set directories {}
     foreach entry $entries {
@@ -261,7 +269,7 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr}} {
     }
 
     # Sort for deterministic order (optional)
-    set directories [lsort $directories]
+    set directories [lsort -dictionary $directories]
 
     # Loop over all matched directories
     set i 1
@@ -273,8 +281,16 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr}} {
         } else {
             loadCifAF3
         }
-        TrajAlignTwoMol 0 top "backbone and resid < 258"
+        TrajAlignTwoMol 0 top "backbone and resid ${KDResids}"
         #mol showrep top 0 off
+        ### change default represention to KD selection only
+        mol modselect 0 top "protein and resid ${KDResids}"
+        # Create a new representation for non-KD
+		mol selection "protein and not resid ${KDResids}"
+		mol representation NewCartoon
+		mol color ColorID 4
+		mol addrep top
+		### diplay of
         mol off top
         cd $base_path
         incr i

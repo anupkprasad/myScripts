@@ -50,10 +50,21 @@ proc playEachMolecule {} {
 }
 
 
-proc playAllMol {} {
+proc playAllMol {{molRange ""}} {
 	# Global control variables
-	set ::mol_index 0
-	set ::mol_list [molinfo list]
+    set ::mol_index 0
+    if {$molRange ne ""} {
+        set init [lindex $molRange 0]
+        set fin [lindex $molRange 1]
+        set mylist {}
+        for {set i $init} {$i <= $fin} {incr i} {
+            lappend mylist $i
+        }
+        set ::mol_list $mylist
+        puts $mylist
+    } else {
+        set ::mol_list [molinfo list]
+    }
 	# Start the playback
 	playEachMolecule
 }
