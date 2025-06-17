@@ -31,6 +31,15 @@ proc trajLoad {{datapath} {pattern "None"} {step 10} {wrap "No"} {sscache "NO"}}
 }
 
 
+proc trajLoadXtc {{step 10}} {
+	mol new ../equilibration/min.gro
+	mol addfile ./md.xtc first 0 last -1 step $step waitfor all
+	puts "Trajectory is loaded"
+}
+
+
+
+
 proc trajWritepdb {{molid top} {sel "protein"} {frames "None"}} {
 	## write pdb for trajectory
 	set sel [atomselect $molid $sel]
