@@ -4,7 +4,7 @@
 # anupkprasad121@gmail.com
 
 ### list all resids of phophorylated aminos
-proc phosfind { {molid top}} {
+proc getPhosResidues {{molid top}} {
 	### THP1, TPO == phosphothreonine and SP2 and SEP == Phosphoserine
 	set selP [atomselect $molid "protein and resname THP1 TPO SP2 SEP PTR"]
 	set residsP [lsort -unique [$selP get resid]]
@@ -14,8 +14,7 @@ proc phosfind { {molid top}} {
 	return
 }
 
-
-proc phosRemove {{molid top} resids {outfile phosRemove.pdb}} {
+proc convertPhosphoToNative {{molid top} resids {outfile convertPhosphoToNative.pdb}} {
 	foreach res $resids {
 		set selres [atomselect $molid "protein and resid $res"]
 		set resnameP [lsort -unique [$selres get resname]]
@@ -33,9 +32,7 @@ proc phosRemove {{molid top} resids {outfile phosRemove.pdb}} {
 	$all writepdb $outfile
 }
 
-
-
-proc phosResnameModify {{molid top} resids {outfile phosResnameModify.pdb}} {
+proc renamePhosphoResidues {{molid top} resids {outfile phosResnameModify.pdb}} {
 
 	foreach res $resids {
 		set selres [atomselect $molid "protein and resid $res"]
