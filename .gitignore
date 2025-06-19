@@ -91,3 +91,8 @@ output/
 results/
 data/
 figures/
+
+
+#others
+.png
+.svg
