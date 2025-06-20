@@ -3,7 +3,7 @@ set pathAnalysis "$pathVmdScript/mdAnalysis"
 set pathGraphic "$pathVmdScript/graphic"
 set pathSetup "$pathVmdScript/mdSetup"
 set pathCentroid "$pathVmdScript/centroid"
-set refStructures "/home/anup/scripts/reference"
+set refStructures "/home/anup/myScripts/referencefiles/KinaseStructures"
 
 
 

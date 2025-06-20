@@ -85,7 +85,7 @@ proc loadCifAF3 {} {
 }
 
 
-proc loadCifAF3Multijobs {{prefix ""} {refStr ${refStructures}/DCLK1_KD_tail.pdb} {KDResids "0 to 258"}} {
+proc loadCifAF3Multijobs {{prefix ""} {refStr "${refStructures}/DCLK1_KD_tail.pdb"} {KDResids "0 to 258"}} {
 	### load and represent refernce structure 
 	mol new $refStr
 	mol modselect 0 top "protein and resid ${KDResids}"
@@ -127,7 +127,7 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr ${refStructures}/DCLK1_KD_tail.pdb
         } else {
             loadCifAF3
         }
-        TrajAlignTwoMol 0 top "backbone and resid ${KDResids}"
+        trajAlignTwoMol 0 top "backbone and resid ${KDResids}"
         #mol showrep top 0 off
         ### change default represention to KD selection only
         mol modselect 0 top "protein and resid ${KDResids}"
