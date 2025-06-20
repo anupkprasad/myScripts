@@ -4,85 +4,7 @@
 # anupkprasad121@gmail.com
 # Ph.D @IITB-Monash Research Academy
 
-proc trajLoad {{datapath} {pattern "None"} {step 10} {wrap "No"} {sscache "NO"}} {
-	set tclscriptpath /media/anupkumar/BackupPlus/scripts/tcl/VMD_scripts
-	set psf_name [lindex [glob -directory $datapath ionized.psf] {0}]
-	puts $psf_name
-	mol new $psf_name
-	set prod_list [glob -directory $datapath -type d *{prod,Prod}*]
-	if {$pattern != "None"} {
-		set prod_list [glob -directory $datapath -type d *{$pattern}*]
-	}
-	## sorting the prod_list according ASCII
-	set prod_list [lsort -dictionary $prod_list]
-	foreach prod $prod_list {
-		puts $prod
-		set filename [lindex [glob -directory $prod/ *.dcd] {0}]
-		puts $filename
-		mol addfile $filename first 0 last -1 step $step waitfor all
-	}
-	if {$wrap != "No"} {
-		pbc wrap -center com -centersel "protein" -compound fragment -all
-	}
-	if {$sscache != "No"} {
-		source $tclscriptpath/sscache.tcl
-	}
-	puts "Trajectory is loaded"
-}
-
-
-proc trajLoadXtc {{filename "md_frm1ns.xtc" } {step 1}} {
-	mol new ../equilibration/min.gro
-	mol addfile ./$filename first 0 last -1 step $step waitfor all
-	puts "Trajectory is loaded"
-}
-
-
-
-
-proc trajWritepdb {{molid top} {sel "protein"} {frames "None"}} {
-	## write pdb for trajectory
-	set sel [atomselect $molid $sel]
-	set n [molinfo $molid get numframes]
-	for { set i 0 } { $i < $n } { incr i } {
-
-		$sel frame $i
-		$sel writepdb $i.pdb
-	}
-}
-
-
-
-proc trajAlign {{molid top} {sel "protein"}} {
-	## sel: segment (Kinase domain) which are required to align, allsel: transformation matrix to entire molecules (Kinase domaain +tail)
-	set sel0 [atomselect $molid $sel]
-	set n [molinfo $molid get numframes]
-	for { set i 0 } { $i < $n } { incr i } {
-		set sel1 [atomselect $molid $sel]
-		set allsel [atomselect $molid "protein" frame $i]
-		$sel1 frame $i
-		set M [measure fit $sel1 $sel0]
-		$allsel move $M
-	}
-}
-
-
-proc TrajAlignTwoMol {{molidRef top} {molid top} {sel "protein and backbone"}} {
-	## sel: segment (Kinase domain) which are required to align, allsel: transformation matrix to entire molecules (Kinase domaain +tail)
-	set sel0 [atomselect $molidRef $sel]
-	set n [molinfo $molid get numframes]
-	for { set i 0 } { $i < $n } { incr i } {
-		set sel1 [atomselect $molid $sel]
-		set allsel [atomselect $molid all frame $i]
-		$sel1 frame $i
-		set M [measure fit $sel1 $sel0]
-		$allsel move $M
-	}
-}
-
-
-
-proc alignMultimolid {{molid_refid 0} {molid_align top} {sel "protein and backbone"}} {
+proc alignMultiMolid {{molid_refid 0} {molid_align top} {sel "protein and backbone"}} {
 	### mol_align : the molids which are to be aligned
 	set sel0 [atomselect $molid_refid $sel]
 	foreach al $molid_align {
@@ -92,17 +14,16 @@ proc alignMultimolid {{molid_refid 0} {molid_align top} {sel "protein and backbo
 	}
 }
 
-
-proc getAminoseq {{molid top} {sel "protein"}} {
+proc getSequence {{molid top}} {
 	set aa_triple { ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR}
 	set aa_single { A C D E F G H I K L M N P Q R S T V W Y }
-	set sel [atomselect $molid $sel]
+	set sel [atomselect $molid "protein"]
 	set uresid [lsort -unique [$sel get resid]]
 	## sorting the prod_list according ASCII
 	set uresid [lsort -dictionary $uresid]
 	set amino_acids ""
 	foreach rid $uresid {
-		set sel_rid [atomselect $molid "resid $rid"]
+		set sel_rid [atomselect $molid "resid $rid and protein"]
 	    set rsnm [lsort -unique [$sel_rid get resname]]
 	    #puts $rsnm
 	    set aa_in [lsearch -exact $aa_triple $rsnm]
@@ -111,14 +32,14 @@ proc getAminoseq {{molid top} {sel "protein"}} {
 	}
 	set cter [atomselect $molid "resid [lindex $uresid end]"]
 	set cter_atms [$cter get name]
+	set is_NH2 "No"
 	if {[lsearch -exact $cter_atms "NT"] >= 0} {
     append amino_acids "-NH2"
+    set is_NH2 "Yes"
 	}
-	puts "Amino Acid Sequence: $amino_acids"
 	$sel delete
-	return $amino_acids
+	return [list $amino_acids $is_NH2]
 }
-
 
 
 proc getResnameResid { {molid top} {selection protein}} {
@@ -132,10 +53,19 @@ proc getResnameResid { {molid top} {selection protein}} {
 	$sel delete
 }
 
+# change resid for each chain and then set sel [atomselect top all]; $sel writepdb name.pdb
+proc changeResidOfChain {{chainId} {start_resid}} {
+	set sel [atomselect top "chain $chainId"]
+	set resid_list [lsort -integer [lsort -unique [$sel get resid]]]
+	set new_resid $start_resid
+	foreach old_resid $resid_list {
+	    [atomselect top "chain $chainId and resid $old_resid"] set resid $new_resid
+	    puts "$old_resid to $new_resid"
+	    incr new_resid
+	}
+}
 
-
-
-proc assign_uniqueid {pdbfile} {
+proc setUniqueID {pdbfile} {
 	mol new $pdbfile.pdb
 	pbc set {0 0 0} 
 	set proteins [atomselect top "protein"]
@@ -160,8 +90,7 @@ proc assign_uniqueid {pdbfile} {
 	assign_ENDtoTER_pdb ${pdbfile}_u
 }
 
-
-proc assign_ENDtoTER_pdb {filename} {
+proc setENDtoTERinPdb {filename} {
     mol new $filename.pdb
     set myfile [open ${filename}.pdb]
     set lines [split [read $myfile] "\n"]
@@ -181,157 +110,8 @@ proc assign_ENDtoTER_pdb {filename} {
 }
 
 
-proc trajWrapSscacheCterrep {{syswrap No} {sysstr Yes}} {
-	set sel [atomselect top "protein"]
-	mol representation CPK
-	mol color ColorID 4
-	set cter_index [lindex [$sel get resid] end]; ### get resid of cter residue
-	mol selection "protein and resid ${cter_index} and name CA"
-	[atomselect top "protein and resid ${cter_index} and name CA"] set radius 7
-	mol addrep top
-	if {$syswrap !=  No} {
-		pbc wrap -center com -centersel "protein" -compound fragment -all
-	}
 
-	if {$sysstr != No} {
-		global pathVmdScript
-		source $pathVmdScript/sscache.tcl
-		start_sscache top
-		animate forward
-	}
-	puts "done"
-}
-
-
-
-
-proc loadPdbAll {} {
-	set pdb_list [glob *pdb]
-	set i 0
-	foreach pdb $pdb_list {
-		if {$i == 0} {
-			mol new $pdb
-		} else {
-			mol addfile $pdb
-		}
-		incr i
-	}
-}
-
-proc loadCifAll {} {
-	set pdb_list [glob *cif]
-	set i 0
-	foreach pdb $pdb_list {
-		if {$i == 0} {
-			mol new $pdb
-		} else {
-			mol addfile $pdb
-		}
-		incr i
-	}
-}
-
-
-proc loadCifAF3 {} {
-	set dir [lsort -increasing [glob seed*]]
-	set i 1
-	foreach d $dir {
-		set filecif [glob ./$d/*.cif]
-		puts $d
-		if {$i ==1} {
-			mol new $filecif
-		} else {
-				mol addfile $filecif
-		}
-		incr i
-		}
-}
-
-
-proc loadCifAF3Multijobs {{prefix ""} {refStr ${refStructures}/DCLK1_KD_tail.pdb} {KDResids "0 to 258"}} {
-	### load and represent refernce structure 
-	mol new $refStr
-	mol modselect 0 top "protein and resid ${KDResids}"
-	mol modcolor 0 top ColorID 8
-    # Create a new representation for non-KD
-	mol selection "protein and not resid ${KDResids}"
-	mol representation NewCartoon
-	mol color ColorID 2
-	mol addrep top
-
-    # Set the base path
-    set base_path [pwd]
-    set base_path [file normalize "."]
-    puts "Base path is: $base_path"
-
-    # Get the list of all entries in the directory
-    set entries [glob -nocomplain -directory $base_path *]
-    # Filter only directories with the given prefix
-    set directories {}
-    foreach entry $entries {
-        if {[file isdirectory $entry]} {
-            set dir_name [file tail $entry]
-            if {[string match ${prefix}* $dir_name]} {
-                lappend directories $entry
-            }
-        }
-    }
-
-    # Sort for deterministic order (optional)
-    set directories [lsort -dictionary $directories]
-
-    # Loop over all matched directories
-    set i 1
-    foreach dir $directories {
-        puts "Loading directory: $dir"
-        cd $dir
-        if {$i == 1} {
-            loadCifAF3
-        } else {
-            loadCifAF3
-        }
-        TrajAlignTwoMol 0 top "backbone and resid ${KDResids}"
-        #mol showrep top 0 off
-        ### change default represention to KD selection only
-        mol modselect 0 top "protein and resid ${KDResids}"
-        # Create a new representation for non-KD
-		mol selection "protein and not resid ${KDResids}"
-		mol representation NewCartoon
-		mol color ColorID 4
-		mol addrep top
-		### diplay of
-        mol off top
-        cd $base_path
-        incr i
-    }
-}
-
-proc addCifAF3 {{rename ""}} {
-    set dir [lsort -increasing [glob seed*]]
-    foreach d $dir {
-        set filecif [glob ./$d/*.cif]
-        puts $d
-        mol addfile $filecif
-    }
-
-    set molid [molinfo top]
-
-    ;# Only rename if a non-empty string was passed
-    if {$rename ne ""} {
-        mol rename $molid $rename
-    }
-}
-
-
-proc trajSave {{outfile traj.trr}} {
-	set sel [atomselect top all]
-	$sel writepdb frm0.pdb
-	# Write trajectory
-	animate write trr $outfile beg 0 end -1 skip 1 waitfor all top
-
-}
-
-proc transparencySet {new_alpha} {
+proc changeTransparency {new_alpha} {
         # This will always get the correct colors even if VMD
         # gains new definitions in the future
         set color_start [colorinfo num]
@@ -342,7 +122,6 @@ proc transparencySet {new_alpha} {
                 color change alpha $color $new_alpha
         }
 }
-
 
 # get the frames in the movie
 proc snapshot {{molid top} {dim 2000} {filename ""}} {
@@ -363,28 +142,72 @@ proc snapshot {{molid top} {dim 2000} {filename ""}} {
 }
 
 
-
-proc snapframes {start step stop} {
-    for {set i $start} {$i <= $stop} {incr i $step} {
-        puts "Processing frame: $i"
-        animate goto $i
-        display update ui
-        snapshot top 1000
+proc findClash { {molid top} {cutoff 1.5} {rep "No"} }  {
+    set molecule_number [molinfo $molid get id]
+    set clash_atoms [measure contacts $cutoff [atomselect $molid noh]]
+    set atom_num [llength [lindex $clash_atoms 0]]
+    if {$atom_num != 0} {
+        puts "Total clash_atoms =  $atom_num"
+        puts "following atom indices: $clash_atoms"
+    } else {
+        puts "Total clash_atoms =  No Clash in Atoms"
     }
+
+    if {($rep == "Yes") && ($atom_num > 0)} {
+        puts $atom_num
+        mol addrep $molecule_number
+        set repid [expr [molinfo $molid get numreps] - 1]
+        mol modselect $repid $molecule_number "index [lsort -unique [lindex $clash_atoms 0]]"
+        mol modstyle $repid $molecule_number vdw
+        mol modcolor $repid $molecule_number Chain
+
+        mol addrep $molecule_number
+        set repid [expr [molinfo $molid get numreps] - 1]
+        mol modselect $repid $molecule_number "index [lsort -unique [lindex $clash_atoms 1]]"
+        mol modstyle $repid $molecule_number vdw
+        mol modcolor $repid $molecule_number Name
+
+    }
+    return $atom_num
 }
 
 
+proc getCellDimention {{molid top}} {
+	 set all [atomselect $molid all]
+	 set minmax [measure minmax $all]
+	 set vec [vecsub [lindex $minmax 1] [lindex $minmax 0]]
+	 set a "cellBasisVector1 [lindex $vec 0] 0 0"
+	 set b "cellBasisVector2 0 [lindex $vec 1] 0"
+	 set c "cellBasisVector3 0 0 [lindex $vec 2]"
+	 set center "cellOrigin [measure center $all]"
+	 $all delete
+	 return [list $a\n$b\n$c\n$center]
+}
 
-# change resid for each chain and then set sel [atomselect top all]; $sel writepdb name.pdb
-proc changeResidOfChain {{chainId} {start_resid}} {
-	set sel [atomselect top "chain $chainId"]
-	set resid_list [lsort -integer [lsort -unique [$sel get resid]]]
-	set new_resid $start_resid
-	foreach old_resid $resid_list {
-	    [atomselect top "chain $chainId and resid $old_resid"] set resid $new_resid
-	    puts "$old_resid to $new_resid"
-	    incr new_resid
+
+proc getSysInfo {{molid top} {write_file "No"}} {
+	set aa_seqs "Amino acid Sequence: [lindex [getSequence $molid] 0]"
+	if {[lindex [getSequence $molid] 1] == "Yes"} {
+		set aa_num "Peptide length: [expr [llength [split [lindex [getSequence $molid] 0] ""]] - 4]"
+	} else {
+		set aa_num "Peptide length: [llength [split [lindex [getSequence $molid] 0] ""]]"
 	}
+	set cell_dimention "system dimention: [getCellDimention $molid]"
+	set frame "Frame_num: [molinfo top get numframes]"
+	set Schar "System charge: [eval "vecadd [[atomselect $molid all] get charge]"]"
+	set Pchar "Peptide charge: [eval "vecadd [[atomselect $molid "protein"] get charge]"]"
+	set all "all_atoms_num: [[atomselect top all] num]"
+	set wat "Water_num: [expr double ([[atomselect top "water"] num])/3]"
+	#set TFE "TFE: [expr double ([[atomselect top "resname TFE"] num])/9]"
+	#set Wat_TFE "Water:TFE= [expr double ([expr [[atomselect top "water"] num]/3])/[expr [[atomselect top "resname TFE"] num]/9]]"
+	set ion "Ions: [[atomselect top "ions"] num]"
+ 	set all_info [list $aa_seqs\n$aa_num\n$Pchar\n$cell_dimention\n$Schar\n$frame\n$all\n$wat\n$ion]
+ 	if {$write_file != "No"} {
+		set outfile [open system_info.dat w]
+		puts $outfile $all_info
+		puts $outfile "Total clash_atoms =  [findClash]"
+		close $outfile
+ 	}
+ 	
+ 	return $all_info
 }
-
-
