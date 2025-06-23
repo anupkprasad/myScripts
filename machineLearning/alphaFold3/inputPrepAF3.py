@@ -123,27 +123,3 @@ def seqModification(file, modRemove = ["lowercase"]):
     print("Modified sequence saved to: ", file[:-6] + "Mod.fasta")
     return
 
-
-
-
-def AF3InputMSAtoFatsa(inputfile, outputfile):
-    """
-    Converts a single-line MSA string to a FASTA file format.
-    Args:
-        file (str): Path to the MSA file.
-    Returns:
-        str: Path to the output FASTA file.
-    """
-    # Open and read the JSON file
-    with open(inputfile, 'r') as file:
-        jdata = json.load(file)
-    seqjdata = jdata["sequences"][0]["protein"]
-    unpairedMsa = seqjdata["unpairedMsa"].split("\n")
-    # open file in write mode
-    with open(outputfile, 'w') as fp:
-        for line in unpairedMsa:
-            # write each item on a new line
-            fp.write("%s\n" % line)
-        print('Done')
-    return unpairedMsa
-
