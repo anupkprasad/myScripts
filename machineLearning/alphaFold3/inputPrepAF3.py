@@ -1,15 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on 2025-06-25 (Y/M/D) at 11:11
+@author: Anup K. Prasad
+email: anupkprasad121@gmail.com
+"""
+"""
 AF3_inputPrep.py
-Description: Script for preparing input data for AlphaFold3.
+Description: Script for preparing inputs for AlphaFold3.
 """ 
 import json
 from typing import List
 
-def generate_af3_input_json(name: str, sequence: str, PTMs: List[dict] ,model_seeds: List[int],
-                            unpaired_msa: str, paired_msa: str,templates: List[str],
-                            output_file: str):
+def generateAF3InputJson(
+    name: str,
+    model_seeds: List[int],
+    sequence: str,
+    output_file: str,
+    PTMs: List[dict]= [],
+    unpaired_msa: str= None,
+    paired_msa: str= None,
+    templates: List[str]=None,
+    chainID: str = "A"
+):
     """
     Generates an AlphaFold3 input JSON file.
     Args:
@@ -24,8 +37,50 @@ def generate_af3_input_json(name: str, sequence: str, PTMs: List[dict] ,model_se
         templates (List[str]):  [mmcif, id]; custom template,
                                 null or ommition of this field; AF3-searched template,
                                 []; template free
-
         output_file (str): Path to save the output JSON file.
+    """
+    if PTMs != []:
+        PTMs = [{"ptmType": ptm["type"], "ptmPosition": ptm["position"]} for ptm in PTMs]
+
+    af3_input = {
+        "dialect": "alphafold3",
+        "version": 1,
+        "name": name,
+        "modelSeeds": model_seeds,
+        "sequences": [
+            {
+                "protein": {
+                    "id": chainID,
+                    "sequence": sequence,
+                    "modifications": PTMs,
+                    "unpairedMsa": unpaired_msa,
+                    "pairedMsa": paired_msa,
+                    "templates": templates,
+                }
+            }
+        ]
+    }
+
+    with open(output_file, "w") as f:
+        json.dump(af3_input, f, indent=2)
+    print(f" AlphaFold 3 input JSON saved to: {output_file}")
+
+
+
+
+def generateMultichainAF3InputJson(
+    name: str,
+    model_seeds: List[int],
+    sequence: List[str],
+    output_file: str,
+    PTMs: List[dict]= [],
+    unpaired_msa: str= None,
+    paired_msa: str= None,
+    templates: List[str]=None,
+    chainID: List[str] = ["A", "B"]
+):
+    """
+    Generates an AlphaFold3 input JSON file for multiple chains.
     """
     if PTMs is None:
         PTMs = []
@@ -36,24 +91,52 @@ def generate_af3_input_json(name: str, sequence: str, PTMs: List[dict] ,model_se
         "dialect": "alphafold3",
         "version": 1,
         "name": name,
+        "modelSeeds": model_seeds,
         "sequences": [
             {
                 "protein": {
-                    "id": "A",
-                    "sequence": sequence,
+                    "id": chainID[0],
+                    "sequence": sequence[0],
                     "modifications": PTMs,
                     "unpairedMsa": unpaired_msa,
                     "pairedMsa": paired_msa,
                     "templates": templates,
                 }
+            },
+            {
+                "protein": {
+                    "id": chainID[1],
+                    "sequence": sequence[1],
+                    "modifications": PTMs,
+                    "templates": templates,
+                }
             }
-        ],
-        "modelSeeds": model_seeds
+        ]
     }
 
     with open(output_file, "w") as f:
         json.dump(af3_input, f, indent=2)
     print(f" AlphaFold 3 input JSON saved to: {output_file}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

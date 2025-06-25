@@ -31,12 +31,16 @@ proc trajAlign {{molid top} {sel "protein"}} {
 }
 
 
-proc trajAlignTwoMol {{molidRef top} {molid top} {sel "protein and backbone"}} {
+proc trajAlignTwoMol {{molidRef top} {molid top} {selRef "protein and backbone"} {sel "protein and backbone"}} {
 	## sel: segment (Kinase domain) which are required to align, allsel: transformation matrix to entire molecules (Kinase domaain +tail)
-	set sel0 [atomselect $molidRef $sel]
+	set sel0 [atomselect $molidRef $selRef]
+	puts "Reference atoms: [$sel0 num]"
 	set n [molinfo $molid get numframes]
 	for { set i 0 } { $i < $n } { incr i } {
 		set sel1 [atomselect $molid $sel]
+		if {$i == 0} {
+			puts "Selected atoms: [$sel1 num]"
+		}
 		set allsel [atomselect $molid all frame $i]
 		$sel1 frame $i
 		set M [measure fit $sel1 $sel0]
