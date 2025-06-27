@@ -40,37 +40,40 @@ proc trajLoadXtc {{filename "md_frm1ns.xtc" } {step 1}} {
 }
 
 
+proc loadPdbs {{pdb_list ""}} {
+	if {$pdb_list eq ""} {
+		set pdb_list [glob *pdb]
+	}
+	set i 0
+	foreach pdb $pdb_list {
+		if {$i == 0} {
+			mol new $pdb
+		} else {
+			mol addfile $pdb
+		}
+		incr i
+	}
+}
+
+
+proc loadCifs {{cif_list ""}} {
+	if {$cif_list eq ""} {
+		set cif_list [glob *cif]
+	}
+	set i 0
+	foreach cif $cif_list {
+		if {$i == 0} {
+			mol new $cif
+		} else {
+			mol addfile $cif
+		}
+		incr i
+	}
+}
 
 ###### Load AlphaFold structure ###########
-
-proc loadPdbAll {} {
-	set pdb_list [glob *pdb]
-	set i 0
-	foreach pdb $pdb_list {
-		if {$i == 0} {
-			mol new $pdb
-		} else {
-			mol addfile $pdb
-		}
-		incr i
-	}
-}
-
-proc loadCifAll {} {
-	set pdb_list [glob *cif]
-	set i 0
-	foreach pdb $pdb_list {
-		if {$i == 0} {
-			mol new $pdb
-		} else {
-			mol addfile $pdb
-		}
-		incr i
-	}
-}
-
-proc loadCifAF3 {} {
-	set dir [lsort -increasing [glob seed*]]
+proc loadCifAF3 {{pattern "seed"}} {
+	set dir [lsort -increasing [glob ${pattern}*]]
 	set i 1
 	foreach d $dir {
 		set filecif [glob ./$d/*.cif]
@@ -85,13 +88,15 @@ proc loadCifAF3 {} {
 }
 
 
-proc loadCifAF3Multijobs {{prefix ""} {refStr "${refStructures}/DCLK1_KD_tail.pdb"} {KDResids "0 to 258"}} {
-	### load and represent refernce structure 
-	mol new $refStr
-	mol modselect 0 top "protein and resid ${KDResids}"
+proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD_tail.pdb"} {KDResids "resid 0 to 258"}} {
+	### load and represent refernce structure
+	global refStructures
+	mol new $refStructures/$refStr
+	set refid [molinfo top]
+	mol modselect 0 top "protein and ${KDResids}"
 	mol modcolor 0 top ColorID 8
     # Create a new representation for non-KD
-	mol selection "protein and not resid ${KDResids}"
+	mol selection "protein and not ${KDResids}"
 	mol representation NewCartoon
 	mol color ColorID 2
 	mol addrep top
@@ -108,7 +113,7 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr "${refStructures}/DCLK1_KD_tail.pd
     foreach entry $entries {
         if {[file isdirectory $entry]} {
             set dir_name [file tail $entry]
-            if {[string match ${prefix}* $dir_name]} {
+            if {[string match ${pattern}* $dir_name]} {
                 lappend directories $entry
             }
         }
@@ -127,12 +132,12 @@ proc loadCifAF3Multijobs {{prefix ""} {refStr "${refStructures}/DCLK1_KD_tail.pd
         } else {
             loadCifAF3
         }
-        trajAlignTwoMol 0 top "backbone and resid ${KDResids}"
+        trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and ${KDResids}"
         #mol showrep top 0 off
         ### change default represention to KD selection only
-        mol modselect 0 top "protein and resid ${KDResids}"
+        mol modselect 0 top "protein and ${KDResids}"
         # Create a new representation for non-KD
-		mol selection "protein and not resid ${KDResids}"
+		mol selection "protein and not ${KDResids}"
 		mol representation NewCartoon
 		mol color ColorID 4
 		mol addrep top

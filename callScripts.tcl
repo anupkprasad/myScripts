@@ -4,7 +4,7 @@ set pathGraphic "$pathVmdScript/graphic"
 set pathSetup "$pathVmdScript/mdSetup"
 set pathCentroid "$pathVmdScript/centroid"
 set refStructures "/home/anup/myScripts/referencefiles/KinaseStructures"
-
+set pathBioinfo "/home/anup/myScripts/bioinformatics"
 
 
 
@@ -22,7 +22,8 @@ source "$pathVmdScript/mdAnalysis/ssTraj.tcl"
 source "$pathVmdScript/mdAnalysis/gyra.tcl"
 
 
-
+############ for esbg tools  ########
+source "$pathBioinfo/esbgTools.tcl"
 
 
 
