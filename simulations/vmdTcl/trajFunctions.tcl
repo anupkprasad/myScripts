@@ -49,8 +49,6 @@ proc trajAlignTwoMol {{molidRef top} {molid top} {selRef "protein and backbone"}
 }
 
 
-
-
 proc trajWrapSscacheCterrep {{syswrap No} {sysstr Yes}} {
 	set sel [atomselect top "protein"]
 	mol representation CPK

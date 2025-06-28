@@ -1,6 +1,5 @@
 # get the secondary structure of protein CA atoms, each line represent frame
-
-proc trajSecstr {{molid top} {CA_sel "protein and name CA"}} {
+proc calSecStr {{molid top} {CA_sel "protein and name CA"}} {
 	set sel [atomselect $molid $CA_sel]
 	set n [molinfo $molid get numframes]
 	set outfile [open ss_traj.dat w]

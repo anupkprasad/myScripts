@@ -6,7 +6,7 @@
 
 #### Load simulation data  #########
 
-proc trajLoadDCD {{datapath} {pattern "None"} {step 10} {wrap "No"} {sscache "NO"}} {
+proc trajLoadDCD {{datapath} {pattern "None"} {step 10}} {
 	set tclscriptpath /media/anupkumar/BackupPlus/scripts/tcl/VMD_scripts
 	set psf_name [lindex [glob -directory $datapath ionized.psf] {0}]
 	puts $psf_name
@@ -22,12 +22,6 @@ proc trajLoadDCD {{datapath} {pattern "None"} {step 10} {wrap "No"} {sscache "NO
 		set filename [lindex [glob -directory $prod/ *.dcd] {0}]
 		puts $filename
 		mol addfile $filename first 0 last -1 step $step waitfor all
-	}
-	if {$wrap != "No"} {
-		pbc wrap -center com -centersel "protein" -compound fragment -all
-	}
-	if {$sscache != "No"} {
-		source $tclscriptpath/sscache.tcl
 	}
 	puts "Trajectory is loaded"
 }
