@@ -50,6 +50,7 @@ proc loadPdbs {{pdb_list ""}} {
 }
 
 
+
 proc loadCifs {{cif_list ""}} {
 	if {$cif_list eq ""} {
 		set cif_list [glob *cif]
@@ -156,4 +157,24 @@ proc addCifAF3 {{rename ""}} {
     if {$rename ne ""} {
         mol rename $molid $rename
     }
+}
+
+
+proc readFileAsList {filename} {
+    # Open file for reading
+    set fp [open $filename r]
+    
+    # Initialize empty list
+    set lines {}
+
+    # Loop through each line
+    while {[gets $fp line] >= 0} {
+        lappend lines $line
+    }
+
+    # Close file
+    close $fp
+
+    # Return list
+    return $lines
 }
