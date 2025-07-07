@@ -6,18 +6,38 @@
 
 ######## Functions for Trajectories  ############
 
-proc trajWritepdb {{molid top} {sel "protein"} {frames "None"}} {
-	## write pdb for trajectory
-	set sel [atomselect $molid $sel]
-	set n [molinfo $molid get numframes]
-	for { set i 0 } { $i < $n } { incr i } {
+proc trajWritepdb {{sel "protein"} {frames ""} {outfiles ""}} {
+	## frames: list of frames to write, if empty then all frames will be written
+	if {$frames eq ""} {
+		set ni 0
+		set nf [molinfo top get numframes]
+	} else {
+		set ni [lindex $frames 0]
+		set nf [lindex $frames end]
+	}
 
-		$sel frame $i
-		$sel writepdb $i.pdb
+	set framesW {}
+	for {set i $ni} {$i < $nf} {incr i} {
+		lappend framesW $i
+	}
+
+	if {$outfiles eq ""} {
+		set outfiles $framesW
+	}
+
+	set sel [atomselect top $sel]
+	for { set i 0 } { $i < [llength $framesW] } { incr i } {
+		set frameIndex [lindex $framesW $i]
+		$sel frame $frameIndex
+		puts "Writing frame $frameIndex to file: [lindex $outfiles $i].pdb"
+		set outfile [lindex $outfiles $i]
+		$sel writepdb $outfile.pdb
 	}
 }
 
-proc trajAlign {{molid top} {sel "protein"}} {
+
+proc trajAlign {{sel "protein"}} {
+	set molid top
 	## sel: segment (Kinase domain) which are required to align, allsel: transformation matrix to entire molecules (Kinase domaain +tail)
 	set sel0 [atomselect $molid $sel]
 	set n [molinfo $molid get numframes]

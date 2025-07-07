@@ -35,3 +35,8 @@ def getAF3GeneratedMSA(inputJson, outputfile, no_insert = True):
         print('Done')
     return MSAOutput
 
+
+path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/dclk3_amsa_atemp/constraint"
+inputJson = path + "/dclk3_amsa_atemp_data.json"
+outputfile = path + "/dclk3_amsa_atemp_dataMSA.fasta"
+getAF3GeneratedMSA(inputJson, outputfile, no_insert=True)

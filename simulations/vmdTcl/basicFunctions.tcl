@@ -211,3 +211,25 @@ proc getSysInfo {{molid top} {write_file "No"}} {
  	
  	return $all_info
 }
+
+
+proc generatePdbsIdentifiers {n} {
+    set identifiers {}
+    set count 0
+    for {set first 0} {$first <= 9} {incr first} {
+        for {set second 65} {$second <= 90} {incr second} {
+            for {set third 65} {$third <= 90} {incr third} {
+                for {set fourth 0} {$fourth <= 9} {incr fourth} {
+                    set id "${first}[format %c $second][format %c $third]$fourth"
+                    lappend identifiers $id
+                    incr count
+                    if {$count >= $n} {
+                        return $identifiers
+                    }
+                }
+            }
+        }
+    }
+    return $identifiers
+}
+
