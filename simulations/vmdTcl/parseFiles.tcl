@@ -27,7 +27,7 @@ proc trajLoadDCD {{datapath} {pattern "None"} {step 10}} {
 }
 
 
-proc trajLoadXtc {{filename "md_frm1ns.xtc" } {step 1}} {
+proc trajLoadXtc {{filename "mdWrap1ns.xtc" } {step 10}} {
 	mol new ../equilibration/min.gro
 	mol addfile ./$filename first 0 last -1 step $step waitfor all
 	puts "Trajectory is loaded"

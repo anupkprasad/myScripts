@@ -46,7 +46,6 @@ def generateAF3InputJson(
         "dialect": "alphafold3",
         "version": 1,
         "name": name,
-        "modelSeeds": model_seeds,
         "sequences": [
             {
                 "protein": {
@@ -58,7 +57,8 @@ def generateAF3InputJson(
                     "templates": templates,
                 }
             }
-        ]
+        ],
+        "modelSeeds": model_seeds
     }
 
     with open(output_file, "w") as f:
@@ -91,7 +91,6 @@ def generateMultichainAF3InputJson(
         "dialect": "alphafold3",
         "version": 1,
         "name": name,
-        "modelSeeds": model_seeds,
         "sequences": [
             {
                 "protein": {
@@ -111,7 +110,8 @@ def generateMultichainAF3InputJson(
                     "templates": templates,
                 }
             }
-        ]
+        ],
+        "modelSeeds": model_seeds
     }
 
     with open(output_file, "w") as f:

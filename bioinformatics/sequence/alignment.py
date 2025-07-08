@@ -46,6 +46,7 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
         for line in infile:
             if not line.startswith('>'):
                 line = line.strip()
+                line = line.replace(' ', '')  # Remove spaces
                 if line:  # Skip empty lines
                     data.append(line)
             else:
@@ -61,3 +62,4 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
         if data and not data[-1].endswith('\n'):
             outfile.write('\n')
     print(f"Converted {input_file} to single-line format in {output_file}.")
+
