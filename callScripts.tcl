@@ -1,25 +1,25 @@
-set pathVmdScript "/home/anup/myScripts/simulations/vmdTcl"
-set pathAnalysis "$pathVmdScript/mdAnalysis"
-set pathGraphic "$pathVmdScript/graphic"
-set pathSetup "$pathVmdScript/mdSetup"
-set pathCentroid "$pathVmdScript/centroid"
-set refStructures "/home/anup/myScripts/referencefiles/KinaseStructures"
-set pathBioinfo "/home/anup/myScripts/bioinformatics"
+set pathVmdScript [file normalize ~/myScripts]
+set pathAnalysis "$pathVmdScript/simulations/vmdTcl/mdAnalysis"
+set pathGraphic "$pathVmdScript/simulations/vmdTcl/graphic"
+set pathSetup "$pathVmdScript/simulations/vmdTcl/mdSetup"
+set pathCentroid "$pathVmdScript/simulations/vmdTcl/centroid"
+set refStructures "$pathVmdScript/referencefiles/KinaseStructures"
+set pathBioinfo "$pathVmdScript/bioinformatics"
 
 
 
-source "$pathVmdScript/basicFunctions.tcl"
-source "$pathVmdScript/trajFunctions.tcl"
-source "$pathVmdScript/parseFiles.tcl"
-source "$pathVmdScript/graphic/playAllMol.tcl"
+source "$pathVmdScript/simulations/vmdTcl/basicFunctions.tcl"
+source "$pathVmdScript/simulations/vmdTcl/trajFunctions.tcl"
+source "$pathVmdScript/simulations/vmdTcl/parseFiles.tcl"
+source "$pathVmdScript/simulations/vmdTcl/graphic/playAllMol.tcl"
 
-source "$pathVmdScript/mdSetup/systemSetup.tcl"
-source "$pathVmdScript/mdSetup/phosPTM.tcl"
+source "$pathVmdScript/simulations/vmdTcl/mdSetup/systemSetup.tcl"
+source "$pathVmdScript/simulations/vmdTcl/mdSetup/phosPTM.tcl"
 
 
-source "$pathVmdScript/centroid/propgate2.tcl"
-source "$pathVmdScript/mdAnalysis/ssTraj.tcl"
-source "$pathVmdScript/mdAnalysis/gyra.tcl"
+source "$pathVmdScript/simulations/vmdTcl/centroid/propgate2.tcl"
+source "$pathVmdScript/simulations/vmdTcl/mdAnalysis/ssTraj.tcl"
+source "$pathVmdScript/simulations/vmdTcl/mdAnalysis/gyra.tcl"
 
 
 ############ for esbg tools  ########
