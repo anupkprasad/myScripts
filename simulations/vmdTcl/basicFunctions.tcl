@@ -233,3 +233,51 @@ proc generatePdbsIdentifiers {n} {
     return $identifiers
 }
 
+
+
+proc writePdbWithActualIndex {{sel "protein"} {outfile} {molID top}} {
+	set selection $sel
+	set sel [atomselect $molID $sel]
+	set keep_serials [$sel list]
+	# Convert the list into a set for fast lookup
+	array set keep_atoms {}
+	foreach s $keep_serials {
+		set s [expr {$s + 1}]
+		set keep_atoms($s) 1
+	}
+
+	### write temp pdb for all atoms
+	set selall [atomselect $molID "all"]
+	$selall writepdb temp.pdb
+
+	# Open files
+	set fin [open temp.pdb r]
+	set fout [open $outfile w]
+
+	# Write PDB header
+	#puts $fout "HEADER    Selected Atoms from Molecule ID $molID"
+	puts $fout "TITLE     Selection: $selection"
+	puts $fout "REMARK    Original indices preserved in this PDB file"
+
+	# Loop through each line of the PDB
+	while {[gets $fin line] >= 0} {
+		if {[string match "ATOM*" $line] || [string match "HETATM*" $line]} {
+			# Extract the serial number (columns 7-11, 1-based in PDB)
+			set serial [string trim [string range $line 6 10]]
+			if {[info exists keep_atoms($serial)]} {
+				puts $fout $line
+			}
+		} elseif {[string match "TER*" $line] || [string match "END*" $line]} {
+			puts $fout $line
+		}
+	}
+
+	# Close files
+	close $fin
+	close $fout
+	$sel delete
+	$selall delete
+	exec rm -f temp.pdb
+	puts "PDB file with actual indices written to $outfile"
+}
+

@@ -7,7 +7,7 @@
 ######## Functions for Trajectories  ############
 
 proc trajWritepdb {{sel "protein"} {frames ""} {outfiles ""}} {
-	## frames: list of frames to write, if empty then all frames will be written
+	## frames: list of frames to write (ni: first frame, nf: last frame)
 	if {$frames eq ""} {
 		set ni 0
 		set nf [molinfo top get numframes]
@@ -15,16 +15,15 @@ proc trajWritepdb {{sel "protein"} {frames ""} {outfiles ""}} {
 		set ni [lindex $frames 0]
 		set nf [lindex $frames end]
 	}
-
 	set framesW {}
 	for {set i $ni} {$i < $nf} {incr i} {
 		lappend framesW $i
 	}
 
+
 	if {$outfiles eq ""} {
 		set outfiles $framesW
 	}
-
 	set sel [atomselect top $sel]
 	for { set i 0 } { $i < [llength $framesW] } { incr i } {
 		set frameIndex [lindex $framesW $i]
@@ -34,6 +33,7 @@ proc trajWritepdb {{sel "protein"} {frames ""} {outfiles ""}} {
 		$sel writepdb $outfile.pdb
 	}
 }
+
 
 
 proc trajAlign {{sel "protein"}} {
@@ -69,6 +69,20 @@ proc trajAlignTwoMol {{molidRef top} {molid top} {selRef "protein and backbone"}
 }
 
 
+
+proc trajMoveMol {{molid top } {sel all} {disXYZ {0 0 0}}} {
+	## sel: segment (Kinase domain) which are required to align, allsel: transformation matrix to entire molecules (Kinase domaain +tail)
+	set sel0 [atomselect $molid $sel]
+	set n [molinfo $molid get numframes]
+	for { set i 0 } { $i < $n } { incr i } {
+		puts "Moving frame $i by $disXYZ"
+		$sel0 frame $i
+		$sel0 moveby $disXYZ
+	}
+}
+
+
+
 proc trajWrapSscacheCterrep {{syswrap No} {sysstr Yes}} {
 	set sel [atomselect top "protein"]
 	mol representation CPK
@@ -98,6 +112,9 @@ proc trajSave {{outfile traj.trr}} {
 	animate write trr $outfile beg 0 end -1 skip 1 waitfor all top
 
 }
+
+
+
 
 
 proc trajSnapshot {start step stop} {
