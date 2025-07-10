@@ -94,10 +94,9 @@ proc trajWrapSscacheCterrep {{syswrap No} {sysstr Yes}} {
 	if {$syswrap !=  No} {
 		pbc wrap -center com -centersel "protein" -compound fragment -all
 	}
-
 	if {$sysstr != No} {
 		global pathVmdScript
-		source $pathVmdScript/sscache.tcl
+		source $pathVmdScript/simulations/vmdTcl/sscache.tcl
 		start_sscache top
 		animate forward
 	}
