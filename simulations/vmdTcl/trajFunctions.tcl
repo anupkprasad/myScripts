@@ -36,14 +36,16 @@ proc trajWritepdb {{sel "protein"} {frames ""} {outfiles ""}} {
 
 
 
-proc trajAlign {{sel "protein"}} {
+proc trajAlign {{sel "protein"} {Refframe 0}} {
 	set molid top
 	## sel: segment (Kinase domain) which are required to align, allsel: transformation matrix to entire molecules (Kinase domaain +tail)
 	set sel0 [atomselect $molid $sel]
+	$sel0 frame $Refframe
 	set n [molinfo $molid get numframes]
 	for { set i 0 } { $i < $n } { incr i } {
 		set sel1 [atomselect $molid $sel]
-		set allsel [atomselect $molid "protein" frame $i]
+		#set allsel [atomselect $molid "protein" frame $i]
+		set allsel [atomselect $molid all frame $i]
 		$sel1 frame $i
 		set M [measure fit $sel1 $sel0]
 		$allsel move $M
