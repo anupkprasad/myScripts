@@ -11,170 +11,125 @@ from MDAnalysis.analysis import rms, align
 import numpy as np
 from MDAnalysis.transformations.positionaveraging import PositionAverager
 
-def CalRmsf(u, outpath = None, selRMSF = "protein and backbone", selAlign = "protein and backbone and resid 1:258", ref:str = 0):    
-    if ref==0:
+def CalRmsf(u, outpath = None, selRMSF = "protein and name CA", selAlign = "protein and backbone and resid 1:258",
+             ref: str = None, rmsfTimepoint: list = None):    
+    if ref==0:  # 0 means first frame of trajectory is used as reference for alignment
         align.AlignTraj(u, reference=u, ref_frame=0, select=selAlign, in_memory=True).run()
     elif ref=="average":
-        average = align.AverageStructure(u, u, select=selRMSF, ref_frame=0).run()
+        average = align.AverageStructure(u, u, ref_frame=0).run()
         alignuni = average.universe
         align.AlignTraj(u, reference=alignuni, select=selAlign, in_memory=True).run()
     elif ref:
-        u = mda.Universe(ref, u.trajectory)
-        align.AlignTraj(u, reference=u, select=selAlign, in_memory=True).run()
-
+        uref = ref
+        align.AlignTraj(u, reference=uref, select=selAlign, in_memory=True).run()
 
     rmsf_atoms = u.select_atoms(selRMSF)
-    R = rms.RMSF(rmsf_atoms).run()
+    R = rms.RMSF(rmsf_atoms).run() ##start=0, stop=10, step=1
     rmsf_results = R.results.rmsf
+    if rmsfTimepoint:
+        rmsfs_t = []
+        avg = 5
+        for t in rmsfTimepoint:
+            Rt = rms.RMSF(rmsf_atoms).run(start=t-avg, stop=t+avg, step=1)
+            rmsfs_t.append(Rt.results.rmsf)
+        rmsfs_t = np.array(rmsfs_t)
+        filename = "rmsfTimepoints" + str(rmsfTimepoint).replace(" ", "").replace("[", "").replace("]", "").replace(",", "_") + ".csv"
+        np.savetxt(outpath + '/' + filename, rmsfs_t, delimiter=',')
+
     print (f"CA: {len(rmsf_atoms), len(rmsf_results)}")
     if outpath:
         np.savetxt(outpath + '/rmsf.csv', rmsf_results, delimiter=',')
-        u.trajectory[0]
-        u.add_TopologyAttr('tempfactors') # add empty attribute for all atoms
-        protein = u.select_atoms(selRMSF)
-        for residue, r_value in zip(protein.residues, rmsf_results):
-            residue.atoms.tempfactors = r_value
-            print(f"Residue {residue.resname} {residue.resid} RMSF: {r_value:.2f} A")
-        
-        u.atoms.write(outpath + '/AvgProtStrBeta.pdb') #write the bfactor to the first frame of trajectory
+        if ref == 0:
+            u.trajectory[-1]
+            u.add_TopologyAttr('tempfactors') # add empty attribute for all atoms
+            protein = u.select_atoms(selRMSF)
+            for residue, r_value in zip(protein.residues, rmsf_results):
+                residue.atoms.tempfactors = r_value
+            u.select_atoms("protein").write(outpath + '/proteinWithBetaLastFrame.pdb') #write the bfactor to the last frame of trajectory for all protein atoms
+        elif ref == "average":
+            alignuni.add_TopologyAttr('tempfactors') # add empty attribute for all atoms
+            protein = alignuni.select_atoms(selRMSF)
+            for residue, r_value in zip(protein.residues, rmsf_results):
+                residue.atoms.tempfactors = r_value
+            AvgCA = alignuni.select_atoms("protein and backbone")
+            AvgCA.write(outpath + '/proteinWithBetaAvgStr.pdb') #write the bfactor to the avg structure for CA atoms
+        else:
+            uref.add_TopologyAttr('tempfactors')
+            protein = uref.select_atoms(selRMSF)
+            for residue, r_value in zip(protein.residues, rmsf_results):
+                residue.atoms.tempfactors = r_value
+            uref.select_atoms("protein").write(outpath + '/proteinWithBetaRefStr.pdb') #write the bfactor to reference structure all protein atoms
     return rmsf_results
 
 
+def avarageAtomPositions (u, sel="protein and backbone"):
+    """
+    Calculate the average position of atoms in a selection over the trajectory.
+    
+    Parameters:
+    u (MDAnalysis Universe): The universe containing the trajectory.
+    sel (str): Selection string to choose atoms for averaging.
+    
+    Returns:
+    np.ndarray: Average positions of selected atoms.
+    """
+    # Select atoms based on the provided selection string
+    atoms = u.select_atoms(sel)
+    
+    # Initialize an array to accumulate positions
+    sum_positions = np.zeros((len(atoms), 3))
+    n_frames = 0
+    
+    # Loop over the trajectory frames
+    for ts in u.trajectory:
+        sum_positions += atoms.positions
+        n_frames += 1
+    
+    # Compute the average positionref
+    mean_positions = sum_positions / n_frames
 
-
-
-path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/dclk3_amsa_atemp"
-u = mda.Universe(path + '/frm0.pdb', path + '/traj.trr', in_memory=True, in_memory_step=1)
-
-rmsf = CalRmsf(u, outpath = path)
-
-
-fdfsfd
-
-
-align.AlignTraj(u, u, select="protein and backbone and resid 1:258", ref_frame=0).run()
-#u.trajectory[-1]
-#u.atoms.write(path + '/lastframe.pdb')
-#rmsf = CalRmsf(u, outpath = path)
-#average = align.AverageStructure(u, u, select="protein and backbone and resid 1:258", ref_frame=0).run()
-# ref = average.universe
-# ref.atoms.write(path + '/test.pdb')
-
-# Select backbone atoms
-backbone = u.select_atoms("protein and backbone")
-
-# Initialize array to accumulate positions
-n_atoms = backbone.n_atoms
-sum_positions = np.zeros((n_atoms, 3))
-n_frames = 0
-
-# Loop over trajectory
-for ts in u.trajectory:
-    sum_positions += backbone.positions
-    n_frames += 1
-
-# Compute average position
-mean_positions = sum_positions / n_frames
-
-print("Mean position of backbone atoms (shape: Nx3):")
-print(mean_positions)
-
-
-# Create a new universe with backbone atoms
-avg_universe = mda.Merge(backbone)
-avg_universe.atoms.positions = mean_positions
-avg_universe.atoms.write(path + "/avg_backbone.pdb")
+    avg_universe = mda.Merge(atoms)
+    avg_universe.atoms.positions = mean_positions
+    avg_universe.atoms.write(path + "/avarageAtomPositions.pdb")
+    
 
 
 
 
+###########################################################################################################
+
+path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/dclk2_amsa_atemp"
+selRMSF = "protein and name CA"
+selAlign = "protein and backbone and resid 1:258"
+MD = False
+rep = "/rep1"
+rmsfTimepoint=[5, 50, 100, 150, 200]
+
+refuni = mda.Universe('/home/anup/myScripts/referencefiles/KinaseStructures/DCLK1_KD_tail.pdb')
 
 
+if MD:
+    selAlign = "protein and backbone and resid 390:648" # resids list includes [390 ... 648]
+    u = mda.Universe(path + '/equilibration/min.gro', path + rep + '/mdWrap1ns.xtc', in_memory=True, in_memory_step=1)
+    path = path + rep
+    rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= 0,
+                    rmsfTimepoint=rmsfTimepoint)  
+    c_alphas = u.select_atoms(selRMSF).resids
+else:
+    u = mda.Universe(path + '/frm0.pdb', path + '/traj.trr', in_memory=True, in_memory_step=1)
+    rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= refuni, rmsfTimepoint=rmsfTimepoint)  # ref = 0 means first frame of trajectory is used as reference for alignment
+    c_alphas = range(390, 390+len(rmsf))  # Residue indices for the plot
+
+  
 
 
+# align.AlignTraj(u, reference=u, ref_frame=0, select=selAlign, in_memory=True).run()
+# avarageAtomPositions(u, sel=selAlign)
 
-
-
-
-
-lfdlf
-from MDAnalysis.analysis import rms, align
-
-average = align.AverageStructure(u, u, select='protein and name CA',
-                                 ref_frame=0).run()
-ref = average.universe
-aligner = align.AlignTraj(u, ref,
-                          select='protein and name CA',
-                          in_memory=True).run()
-
-c_alphas = u.select_atoms('protein and name CA')
-R = rms.RMSF(c_alphas).run()
-
-
-
-
-
-
-
-
-jkdfbksdf
-
-
-
-
-def CalRmsf(u, outpath = None, sel = "protein and backbone", ref:str = None):
-    if ref:
-        u = mda.Universe(ref, u.trajectory)
-    else:   
-        average = align.AverageStructure(u, u, select=sel, ref_frame=0).run()
-        ref = average.universe
-        print (f"Average structure saved to {outpath + '/average.pdb'}")
-
-    #aligner = align.AlignTraj(u, ref, select=sel, in_memory=True).run() 
-    rmsf_atoms = u.select_atoms(sel)
-
-    R = rms.RMSF(rmsf_atoms).run()
-    rmsf_results = R.results.rmsf
-    print (f"CA: {len(rmsf_atoms), len(rmsf_results)}")
-    if outpath:
-        u.trajectory[-1] # set the trajectory to the last frame, this will write the bfactor to the last frame
-        u.add_TopologyAttr('tempfactors') # add empty attribute for all atoms
-        protein = u.select_atoms(sel) # select protein atoms
-        for residue, r_value in zip(protein.residues, rmsf_results):
-            residue.atoms.tempfactors = r_value
-
-        np.savetxt(outpath + '/rmsf.csv', rmsf_results, delimiter=',')
-        u.atoms.write(outpath + '/bfactor_rmsf.pdb')
-
-        avg_universe = mda.Merge(u.select_atoms("protein or resname THP1 or resname SP2 "))  # Create a new Universe for the sel
-        avg_universe.add_TopologyAttr('tempfactors')
-        for residue, r_value in zip(avg_universe.residues, rmsf_results):
-            residue.atoms.tempfactors = r_value
-        avg_universe.atoms.write(outpath + '/AvgProtStrBeta.pdb')
-    return rmsf_results, u
-
-
-
-
-
-
-
-
-
-
-
-
-
-path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/MD/DCLK_KD_tail/dclk1_amsa_atemp"
-sel = "protein and backbone and resid 390:690"
-u = mda.Universe(path + "/equilibration/" + 'min.gro', path + "/rep1/" + 'md.xtc', in_memory=True, in_memory_step=10)
-rmsf, u1 = rmsfCal(u, outpath = path , sel = sel)
-
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=(3.5, 2.2), dpi = 600, constrained_layout=True)
-c_alphas = u.select_atoms(sel)
-ax.plot(c_alphas.resids, rmsf, color = "black", label =path.split("/")[-2])
-ax.legend(fontsize = 6, ncol=2);
+##########plotting RMSF results##########
+fig, ax = plt.subplots(figsize=(3.5, 2.2), dpi = 600, constrained_layout=True)   
+ax.plot(c_alphas, rmsf, color = "black", label =path.split("/")[-2])
+ax.legend(fontsize = 6, ncol=2)
 from matplotlib.ticker import (MultipleLocator)
 ax.xaxis.set_major_locator(MultipleLocator(50))
 ax.xaxis.set_minor_locator(MultipleLocator(25))
@@ -185,4 +140,33 @@ ax.tick_params(axis='both', which='minor', labelsize=8)
 ax.set_xlabel("Residue index", fontsize=10)
 ax.set_ylabel("RMSF (\u00c5)", fontsize=10)
 fig.savefig(path +  "/RMSF.png", dpi = 600)
+ax.set_xlim(390, 648)
+ax.set_ylim(0, 1)
+fig.savefig(path +  "/RMSF_KD.png", dpi = 600)
 
+
+############ multiline plot of RMSF results ##########
+fig, ax = plt.subplots(figsize=(3.5, 2.2), dpi = 600, constrained_layout=True)
+filename = "rmsfTimepoints" + str(rmsfTimepoint).replace(" ", "").replace("[", "").replace("]", "").replace(",", "_") + ".csv"
+rmsfs_t = np.loadtxt(path + '/' + filename, delimiter=',')
+
+# Set up color map (e.g., sequential colormap)
+import matplotlib.cm as cm
+cmap = cm.get_cmap('viridis', len(rmsfs_t))  # or 'plasma', 'cividis', 'inferno', etc.
+
+for i, t in enumerate(rmsfTimepoint):
+    ax.plot(c_alphas, rmsfs_t[i], label=f"t={t} ns", linewidth=0.5, color=cmap(i))
+ax.legend(fontsize = 6, ncol=2)
+from matplotlib.ticker import (MultipleLocator)
+ax.xaxis.set_major_locator(MultipleLocator(50))
+ax.xaxis.set_minor_locator(MultipleLocator(25))
+#ax.yaxis.set_major_locator(MultipleLocator(5))
+#ax.yaxis.set_minor_locator(MultipleLocator(2.5))
+ax.tick_params(axis='both', which='major', labelsize=8)
+ax.tick_params(axis='both', which='minor', labelsize=8)
+ax.set_xlabel("Residue index", fontsize=10)
+ax.set_ylabel("RMSF (\u00c5)", fontsize=10)
+fig.savefig(path +  "/RMSF_timepoints.png", dpi = 600)
+ax.set_xlim(390, 648)
+ax.set_ylim(0, 1)
+fig.savefig(path +  "/RMSF_KD_timepoints.png", dpi = 600)

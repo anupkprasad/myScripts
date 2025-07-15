@@ -107,6 +107,7 @@ proc trajWrapSscacheCterrep {{syswrap No} {sysstr Yes}} {
 
 proc trajSave {{outfile traj.trr} {sel "protein"}} {
 	set sel [atomselect top $sel]
+	$sel frame 0
 	$sel writepdb frm0.pdb
 	# Write trajectory
 	animate write trr $outfile beg 0 end -1 skip 1 waitfor all top
