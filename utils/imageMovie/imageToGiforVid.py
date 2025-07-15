@@ -54,7 +54,7 @@ def create_gif_with_annotations(image_folder, output_gif, duration=0.30, resize_
     im_list = []
     
     for idx, file in enumerate(natsorted(os.listdir(image_folder))):
-        if file.endswith(".png"):
+        if file.endswith(".tga") or file.endswith(".png"):
             img = Image.open(os.path.join(image_folder, file))
 
             # Resize and keep transparency
@@ -84,7 +84,7 @@ def create_video(image_folder, output_video, fps=10, resize_dims=(512, 512), fon
     frame_array = []
     
     for idx, file in enumerate(natsorted(os.listdir(image_folder))):
-        if file.endswith(".png"):
+        if file.endswith(".tga") or file.endswith(".png"):
             img = Image.open(os.path.join(image_folder, file))
 
             # Resize and keep transparency
@@ -112,7 +112,7 @@ def create_video(image_folder, output_video, fps=10, resize_dims=(512, 512), fon
         print("No valid images found for video creation!")
 
 # Define input path and output files
-input_path = "/mnt/mydrive/alpfaFold3/dynamics/Custom_MSA/dclk3/dclk3_dclk3_fmsaatemp/snaps/"
+input_path = "/home/anup/anup_data/temp/ryan/test/wc_rep3/snaps/"
 output_gif_path = os.path.join(input_path, "0_output.gif")
 output_video_path = os.path.join(input_path, "0_output.webm")  # WebM for transparency
 

@@ -123,24 +123,6 @@ proc changeTransparency {new_alpha} {
         }
 }
 
-# get the frames in the movie
-proc snapshot {{molid top} {dim 2000} {filename ""}} {
-	display depthcue off
-	if {$filename eq ""} {
-		set frm [molinfo $molid get frame]
-		set f_name [lindex [split [molinfo $molid get name] "."] 0]
-		set filename ${f_name}_${frm}.pov
-	}
-	puts $filename
-	#render POV3 $filename  povray +W$dim +H$dim -I%s -O%s.tga +X +A +FT +UA +WT8
-	render POV3 $filename \
-    povray +W$dim +H$dim -I%s -O%s.tga \
-    +A0.3 +R2 +UA +FT +WT12
-	exec convert $filename.tga $filename.png
-	exec rm -f $filename $filename.tga
-	puts "redering finished"
-}
-
 
 proc findClash { {molid top} {cutoff 1.5} {rep "No"} }  {
     set molecule_number [molinfo $molid get id]

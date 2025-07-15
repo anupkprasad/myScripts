@@ -105,26 +105,10 @@ proc trajWrapSscacheCterrep {{syswrap No} {sysstr Yes}} {
 	puts "done"
 }
 
-
-proc trajSave {{outfile traj.trr}} {
-	set sel [atomselect top all]
+proc trajSave {{outfile traj.trr} {sel "protein"}} {
+	set sel [atomselect top $sel]
 	$sel writepdb frm0.pdb
 	# Write trajectory
 	animate write trr $outfile beg 0 end -1 skip 1 waitfor all top
-
+	puts "Trajectory saved to $outfile and first frame saved to frm0.pdb"
 }
-
-
-
-
-
-proc trajSnapshot {start step stop} {
-    for {set i $start} {$i <= $stop} {incr i $step} {
-        puts "Processing frame: $i"
-        animate goto $i
-        display update ui
-        snapshot top 1000
-    }
-}
-
-

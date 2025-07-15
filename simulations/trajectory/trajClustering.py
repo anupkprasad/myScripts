@@ -5,6 +5,34 @@ from MDAnalysis.analysis.rms import rmsd
 from scipy.cluster.hierarchy import linkage, fcluster
 import numpy as np
 
+def CalRmsd (u, sel="protein and backbone", pos_ref=None):
+    """
+    Calculate RMSD for a given selection in a trajectory.
+    
+    Parameters:
+    u (MDAnalysis Universe): The universe containing the trajectory.
+    sel (str): Selection string to choose atoms for RMSD calculation.
+    
+    Returns:
+    np.ndarray: RMSD values for each frame.
+    """
+    # Select protein backbone for alignment and RMSD calculation
+    protein = u.select_atoms(sel)
+
+    # Compute RMSD for each frame
+    n_frames = len(u.trajectory)
+    rmsd_values = np.zeros(n_frames)
+
+    for i in range(n_frames):
+        u.trajectory[i]  # Move to frame i
+        if pos_ref is None:
+            # If a reference structure is not provided
+            pos_ref = protein.positions.copy()
+
+        pos_i = protein.positions.copy()
+        rmsd_values[i] = rmsd(pos_i, pos_ref, superposition=True)
+    return rmsd_values
+
 
 def CalRMSDMatrix(u, sel="protein and backbone"):
     """
@@ -79,9 +107,46 @@ def cluster_trajectory(u, sel="protein and backbone", threshold= None, clstr_num
     return clusters, rmsd_matrix
 
 
-# Load trajectory
-path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/dclk3_amsa_atemp"
-u = mda.Universe(os.path.join(path , "frm0.pdb"), os.path.join(path , "traj.trr"))
 
+
+
+
+
+
+
+selection = "(backbone and around 15 resname ADE) or (resname ADE)"  # Selection string for protein backbone
+path = "/home/anup/anup_data/temp/ryan/test"
+# Load trajectory and topology
+u = mda.Universe( path + '/em_hg.tpr', path + '/md_50k.xtc', in_memory=True, in_memory_step=100)
+ref_u = mda.Universe(path + '/em_hg.tpr')  # Reference structure for alignment
+ref = u.select_atoms(selection).positions.copy()  # Reference selection for RMSD calculation
+
+ref_u1 = mda.Universe(path + '/em_wc.tpr')  # Reference structure for alignment
+ref1 = u.select_atoms(selection).positions.copy() 
+
+
+rmsrefs = rmsd(ref1, ref, superposition=True)
+
+
+
+
+
+# Calculate RMSD
+rmsd_values = CalRmsd(u, sel=selection, pos_ref=ref)
+
+# Plot RMSD
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10, 5))
+plt.plot(rmsd_values, label="RMSD")
+plt.xlabel("Frame")
+plt.ylabel("RMSD (Å)")
+plt.title("RMSD over Time")
+plt.legend()
+plt.show()
+
+
+
+dfdfsd
 # Cluster trajectory
 clusters, rmsd_matrix = cluster_trajectory(u, sel="protein and backbone", threshold=None, clstr_num=3) ## and resid 1:258
