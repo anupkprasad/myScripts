@@ -63,3 +63,7 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
             outfile.write('\n')
     print(f"Converted {input_file} to single-line format in {output_file}.")
 
+
+
+path = "/mnt/mydrive/alpfaFold3/dynamics/EGFR/KD_tail"
+multi2SingleLineFasta(input_file=path + "/PKB3_KD_tail_query.fasta", output_file= path + "/EGFR_KD_tail_query.fasta")

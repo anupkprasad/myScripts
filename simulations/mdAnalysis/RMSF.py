@@ -11,6 +11,8 @@ from MDAnalysis.analysis import rms, align
 import numpy as np
 from MDAnalysis.transformations.positionaveraging import PositionAverager
 
+
+
 def CalRmsf(u, outpath = None, selRMSF = "protein and name CA", selAlign = "protein and backbone and resid 1:258",
              ref: str = None, rmsfTimepoint: list = None):    
     if ref==0:  # 0 means first frame of trajectory is used as reference for alignment
@@ -22,6 +24,9 @@ def CalRmsf(u, outpath = None, selRMSF = "protein and name CA", selAlign = "prot
     elif ref:
         uref = ref
         align.AlignTraj(u, reference=uref, select=selAlign, in_memory=True).run()
+    else:
+        print("No alignment of trajectory")    
+
 
     rmsf_atoms = u.select_atoms(selRMSF)
     R = rms.RMSF(rmsf_atoms).run() ##start=0, stop=10, step=1
@@ -39,7 +44,7 @@ def CalRmsf(u, outpath = None, selRMSF = "protein and name CA", selAlign = "prot
     print (f"CA: {len(rmsf_atoms), len(rmsf_results)}")
     if outpath:
         np.savetxt(outpath + '/rmsf.csv', rmsf_results, delimiter=',')
-        if ref == 0:
+        if ref == 0 or ref is None:
             u.trajectory[-1]
             u.add_TopologyAttr('tempfactors') # add empty attribute for all atoms
             protein = u.select_atoms(selRMSF)
@@ -98,21 +103,21 @@ def avarageAtomPositions (u, sel="protein and backbone"):
 
 ###########################################################################################################
 
-path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/dclk2_amsa_atemp"
+path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/MD/dclk2_amsa_atemp"
 selRMSF = "protein and name CA"
 selAlign = "protein and backbone and resid 1:258"
-MD = False
-rep = "/rep1"
-rmsfTimepoint=[5, 50, 100, 150, 200]
+MD = True
+rep = "/rep3"
+rmsfTimepoint=[5, 50, 100, 150, 200, 250, 300]
 
-refuni = mda.Universe('/home/anup/myScripts/referencefiles/KinaseStructures/DCLK1_KD_tail.pdb')
+refuni = mda.Universe('/home/anup/myScripts/referencefiles/KinaseStructures/DCLK2_KD_tail.pdb')
 
 
 if MD:
     selAlign = "protein and backbone and resid 390:648" # resids list includes [390 ... 648]
     u = mda.Universe(path + '/equilibration/min.gro', path + rep + '/mdWrap1ns.xtc', in_memory=True, in_memory_step=1)
     path = path + rep
-    rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= 0,
+    rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= refuni,
                     rmsfTimepoint=rmsfTimepoint)  
     c_alphas = u.select_atoms(selRMSF).resids
 else:
@@ -141,7 +146,7 @@ ax.set_xlabel("Residue index", fontsize=10)
 ax.set_ylabel("RMSF (\u00c5)", fontsize=10)
 fig.savefig(path +  "/RMSF.png", dpi = 600)
 ax.set_xlim(390, 648)
-ax.set_ylim(0, 1)
+ax.set_ylim(0, 5)
 fig.savefig(path +  "/RMSF_KD.png", dpi = 600)
 
 
@@ -168,5 +173,5 @@ ax.set_xlabel("Residue index", fontsize=10)
 ax.set_ylabel("RMSF (\u00c5)", fontsize=10)
 fig.savefig(path +  "/RMSF_timepoints.png", dpi = 600)
 ax.set_xlim(390, 648)
-ax.set_ylim(0, 1)
+ax.set_ylim(0, 5)
 fig.savefig(path +  "/RMSF_KD_timepoints.png", dpi = 600)

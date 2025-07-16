@@ -49,6 +49,21 @@ proc loadPdbs {{pdb_list ""}} {
 	}
 }
 
+proc loadPdbsMultimol {{pdb_list ""}} {
+	if {$pdb_list eq ""} {
+		set pdb_list [glob *pdb]
+	}
+	set i 0
+	foreach pdb $pdb_list {
+		mol new $pdb
+	}
+}
+
+
+
+
+
+
 
 
 proc loadCifs {{cif_list ""}} {
