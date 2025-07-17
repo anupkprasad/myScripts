@@ -14,6 +14,12 @@ proc alignMultiMolid {{molid_refid 0} {molid_align top} {sel "protein and backbo
 	}
 }
 
+
+proc getKD {{molid top}} {
+	set sel [atomselect top "protein"]
+
+}
+
 proc getSequence {{molid top}} {
 	set aa_triple { ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR}
 	set aa_single { A C D E F G H I K L M N P Q R S T V W Y }
@@ -41,7 +47,6 @@ proc getSequence {{molid top}} {
 	return [list $amino_acids $is_NH2]
 }
 
-
 proc getResnameResid { {molid top} {selection protein}} {
 	set sel [atomselect $molid $selection]
 	set uresid [lsort -unique [$sel get {resid resname}]]
@@ -64,6 +69,26 @@ proc changeResidOfChain {{chainId} {start_resid}} {
 	    incr new_resid
 	}
 }
+
+
+
+
+
+
+proc getKD { {molid top}} {
+	set sel [atomselect $molid "protein"]
+	set uresid [lsort -unique [$sel get {resid resname}]]
+	set uresid [lsort -dictionary $uresid]
+	# Print first and last elements
+    set a [lindex $uresid 0]
+    set b [lindex $uresid end]
+    puts "First: $a"
+    puts "Last:  $b"
+}
+
+
+
+
 
 proc setUniqueID {pdbfile} {
 	mol new $pdbfile.pdb

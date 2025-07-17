@@ -65,5 +65,5 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
 
 
 
-path = "/mnt/mydrive/alpfaFold3/dynamics/EGFR/KD_tail"
-multi2SingleLineFasta(input_file=path + "/PKB3_KD_tail_query.fasta", output_file= path + "/EGFR_KD_tail_query.fasta")
+path = "/mnt/mydrive/alpfaFold3/dynamics/PRKACA(PKA)"
+multi2SingleLineFasta(input_file=path + "/PRKACA_KD_tail_query.fasta", output_file= path + "/PRKACA_KD_tail_query.fasta")

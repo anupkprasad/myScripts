@@ -7,7 +7,6 @@ set refStructures "$pathVmdScript/referencefiles/KinaseStructures"
 set pathBioinfo "$pathVmdScript/bioinformatics"
 
 
-
 source "$pathVmdScript/simulations/vmdTcl/basicFunctions.tcl"
 source "$pathVmdScript/simulations/vmdTcl/trajFunctions.tcl"
 source "$pathVmdScript/simulations/vmdTcl/parseFiles.tcl"

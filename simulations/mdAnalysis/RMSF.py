@@ -33,9 +33,12 @@ def CalRmsf(u, outpath = None, selRMSF = "protein and name CA", selAlign = "prot
     rmsf_results = R.results.rmsf
     if rmsfTimepoint:
         rmsfs_t = []
-        avg = 5
+        avg = 10
         for t in rmsfTimepoint:
-            Rt = rms.RMSF(rmsf_atoms).run(start=t-avg, stop=t+avg, step=1)
+            if t == rmsfTimepoint[0]:
+                Rt = rms.RMSF(rmsf_atoms).run(start=t, stop=t+avg, step=1)
+            else:
+                Rt = rms.RMSF(rmsf_atoms).run(start=t-avg, stop=t, step=1)
             rmsfs_t.append(Rt.results.rmsf)
         rmsfs_t = np.array(rmsfs_t)
         filename = "rmsfTimepoints" + str(rmsfTimepoint).replace(" ", "").replace("[", "").replace("]", "").replace(",", "_") + ".csv"
@@ -101,31 +104,27 @@ def avarageAtomPositions (u, sel="protein and backbone"):
 
 
 
-###########################################################################################################
+############################## Code initialization #####################################
 
-path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/MD/dclk2_amsa_atemp"
+path = "/mnt/mydrive/alpfaFold3/dynamics/PKB3/pkb3kd_amsa_atemp"
 selRMSF = "protein and name CA"
 selAlign = "protein and backbone and resid 1:258"
-MD = True
+MD = False
 rep = "/rep3"
-rmsfTimepoint=[5, 50, 100, 150, 200, 250, 300]
+rmsfTimepoint=[0, 100, 200, 300, 400, 500]
 
-refuni = mda.Universe('/home/anup/myScripts/referencefiles/KinaseStructures/DCLK2_KD_tail.pdb')
-
+refuni = mda.Universe('/home/anup/myScripts/referencefiles/KinaseStructures/PKB3_KD.pdb')
 
 if MD:
-    selAlign = "protein and backbone and resid 390:648" # resids list includes [390 ... 648]
     u = mda.Universe(path + '/equilibration/min.gro', path + rep + '/mdWrap1ns.xtc', in_memory=True, in_memory_step=1)
-    path = path + rep
-    rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= refuni,
-                    rmsfTimepoint=rmsfTimepoint)  
-    c_alphas = u.select_atoms(selRMSF).resids
 else:
     u = mda.Universe(path + '/frm0.pdb', path + '/traj.trr', in_memory=True, in_memory_step=1)
-    rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= refuni, rmsfTimepoint=rmsfTimepoint)  # ref = 0 means first frame of trajectory is used as reference for alignment
-    c_alphas = range(390, 390+len(rmsf))  # Residue indices for the plot
+    
 
-  
+res_i = np.min(u.select_atoms("protein").resids)
+selAlign = f"protein and backbone and resid {res_i}:{res_i + 258}"
+rmsf = CalRmsf(u, outpath = path, selRMSF=selRMSF, selAlign=selAlign, ref= refuni, rmsfTimepoint=rmsfTimepoint)  # ref = 0 means first frame of trajectory is used as reference for alignment
+c_alphas = u.select_atoms(selRMSF).resids  # Residue indices for the plot 
 
 
 # align.AlignTraj(u, reference=u, ref_frame=0, select=selAlign, in_memory=True).run()
@@ -145,8 +144,8 @@ ax.tick_params(axis='both', which='minor', labelsize=8)
 ax.set_xlabel("Residue index", fontsize=10)
 ax.set_ylabel("RMSF (\u00c5)", fontsize=10)
 fig.savefig(path +  "/RMSF.png", dpi = 600)
-ax.set_xlim(390, 648)
-ax.set_ylim(0, 5)
+ax.set_xlim(min(c_alphas), min(c_alphas)+258)  ## save KD only
+ax.set_ylim(0, 1)
 fig.savefig(path +  "/RMSF_KD.png", dpi = 600)
 
 
@@ -172,6 +171,6 @@ ax.tick_params(axis='both', which='minor', labelsize=8)
 ax.set_xlabel("Residue index", fontsize=10)
 ax.set_ylabel("RMSF (\u00c5)", fontsize=10)
 fig.savefig(path +  "/RMSF_timepoints.png", dpi = 600)
-ax.set_xlim(390, 648)
-ax.set_ylim(0, 5)
+ax.set_xlim(min(c_alphas), min(c_alphas)+258)  ## save KD only
+ax.set_ylim(0, 1)
 fig.savefig(path +  "/RMSF_KD_timepoints.png", dpi = 600)
