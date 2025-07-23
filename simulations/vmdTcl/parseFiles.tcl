@@ -27,10 +27,12 @@ proc trajLoadDCD {{datapath} {pattern "None"} {step 10}} {
 }
 
 
-proc trajLoadXtc {{filename "mdWrap1ns.xtc" } {step 10}} {
+proc trajLoadXtc {{filename "mdWrap1ns.xtc" } {step 1}} {
+	set strfile "../equilibration/min.gro"
 	mol new ../equilibration/min.gro
+	puts "Structure is loaded as a new Mol: $strfile"
 	mol addfile ./$filename first 0 last -1 step $step waitfor all
-	puts "Trajectory is loaded"
+	puts "Trajectory is loaded: $filename"
 }
 
 
@@ -58,13 +60,6 @@ proc loadPdbsMultimol {{pdb_list ""}} {
 		mol new $pdb
 	}
 }
-
-
-
-
-
-
-
 
 proc loadCifs {{cif_list ""}} {
 	if {$cif_list eq ""} {
@@ -98,7 +93,7 @@ proc loadCifAF3 {{pattern "seed"}} {
 }
 
 
-proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD_tail.pdb"} {KDResids "resid 0 to 258"}} {
+proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD.pdb"} {KDResids "resid 390 to 648 and name CA"}} {
 	### load and represent refernce structure
 	global refStructures
 	mol new $refStructures/$refStr
@@ -142,7 +137,7 @@ proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD_tail.pdb"} {KDResi
         } else {
             loadCifAF3
         }
-        trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and ${KDResids}"
+        trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and resid 0 to 258 and name CA and chain A"
         #mol showrep top 0 off
         ### change default represention to KD selection only
         mol modselect 0 top "protein and ${KDResids}"
