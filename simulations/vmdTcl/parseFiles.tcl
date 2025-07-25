@@ -93,18 +93,20 @@ proc loadCifAF3 {{pattern "seed"}} {
 }
 
 
-proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD.pdb"} {KDResids "resid 390 to 648 and name CA"}} {
-	### load and represent refernce structure
-	global refStructures
-	mol new $refStructures/$refStr
-	set refid [molinfo top]
-	mol modselect 0 top "protein and ${KDResids}"
-	mol modcolor 0 top ColorID 8
-    # Create a new representation for non-KD
-	mol selection "protein and not ${KDResids}"
-	mol representation NewCartoon
-	mol color ColorID 2
-	mol addrep top
+proc loadCifAF3MultiMolecules {{dirPrefix ""} {refStr "DCLK1_KD.pdb"} {KDResids "resid 390 to 648 and name CA"}} {
+	if {$refStr ne ""} {
+		### load and represent refernce structure
+		global refStructures
+		mol new $refStructures/$refStr
+		set refid [molinfo top]
+		mol modselect 0 top "protein and ${KDResids}"
+		mol modcolor 0 top ColorID 8
+		# Create a new representation for non-KD
+		mol selection "protein and not ${KDResids}"
+		mol representation NewCartoon
+		mol color ColorID 2
+		mol addrep top
+	}
 
     # Set the base path
     set base_path [pwd]
@@ -115,10 +117,14 @@ proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD.pdb"} {KDResids "r
     set entries [glob -nocomplain -directory $base_path *]
     # Filter only directories with the given prefix
     set directories {}
+	if {$dirPrefix eq ""} {
+		puts "Error: Provide directory prefix."
+		return
+	}
     foreach entry $entries {
         if {[file isdirectory $entry]} {
             set dir_name [file tail $entry]
-            if {[string match ${pattern}* $dir_name]} {
+            if {[string match ${dirPrefix}* $dir_name]} {
                 lappend directories $entry
             }
         }
@@ -137,8 +143,10 @@ proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD.pdb"} {KDResids "r
         } else {
             loadCifAF3
         }
-        trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and resid 0 to 258 and name CA and chain A"
-        #mol showrep top 0 off
+		if {$refStr ne ""} {
+        	trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and resid 0 to 258 and name CA and chain A"
+		}
+		#mol showrep top 0 off
         ### change default represention to KD selection only
         mol modselect 0 top "protein and ${KDResids}"
         # Create a new representation for non-KD
@@ -146,6 +154,12 @@ proc loadCifAF3MultiMolecules {{pattern ""} {refStr "DCLK1_KD.pdb"} {KDResids "r
 		mol representation NewCartoon
 		mol color ColorID 4
 		mol addrep top
+		# Create a new representation for chain B
+		mol selection "protein and chain B"
+		mol representation NewCartoon
+		mol color ColorID 10
+		mol addrep top
+				
 		### diplay of
         mol off top
         cd $base_path
