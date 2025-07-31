@@ -21,7 +21,8 @@ def generateAF3InputJson(
     unpaired_msa: str= None,
     paired_msa: str= None,
     templates: List[str]=None,
-    chainID: str = "A"
+    chainID: str = "A",
+    ligand: str = None
 ):
     """
     Generates an AlphaFold3 input JSON file.
@@ -42,24 +43,50 @@ def generateAF3InputJson(
     if PTMs != []:
         PTMs = [{"ptmType": ptm["type"], "ptmPosition": ptm["position"]} for ptm in PTMs]
 
-    af3_input = {
-        "dialect": "alphafold3",
-        "version": 1,
-        "name": name,
-        "sequences": [
-            {
-                "protein": {
-                    "id": chainID,
-                    "sequence": sequence,
-                    "modifications": PTMs,
-                    "unpairedMsa": unpaired_msa,
-                    "pairedMsa": paired_msa,
-                    "templates": templates,
+    if ligand:
+        af3_input = {
+            "dialect": "alphafold3",
+            "version": 1,
+            "name": name,
+            "sequences": [
+                {
+                    "protein": {
+                        "id": chainID,
+                        "sequence": sequence,
+                        "modifications": PTMs,
+                        "unpairedMsa": unpaired_msa,
+                        "pairedMsa": paired_msa,
+                        "templates": templates,
+                    }
+                },
+                {
+                    "ligand": {
+                        "id": ["L"],  # Example ligand ID
+                        "ccdCodes": [ligand]  # Example CCD code for ligands
+                    }
                 }
-            }
-        ],
-        "modelSeeds": model_seeds
-    }
+            ],
+            "modelSeeds": model_seeds
+        }
+    else:
+        af3_input = {
+            "dialect": "alphafold3",
+            "version": 1,
+            "name": name,
+            "sequences": [
+                {
+                    "protein": {
+                        "id": chainID,
+                        "sequence": sequence,
+                        "modifications": PTMs,
+                        "unpairedMsa": unpaired_msa,
+                        "pairedMsa": paired_msa,
+                        "templates": templates,
+                    }
+                }
+            ],
+            "modelSeeds": model_seeds
+        }
 
     with open(output_file, "w") as f:
         json.dump(af3_input, f, indent=2)
