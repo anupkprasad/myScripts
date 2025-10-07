@@ -29,7 +29,7 @@
 !Stote, R.H. and Karplus, M. Zinc Binding in Proteins and
 !Solution: A Simple but Accurate Nonbonded Representation, PROTEINS:
 !Structure, Function, and Genetics 23:12-31 (1995)
-
+! topology for MN is added manually, taken from CHatGPT
 read rtf card append
 * Topology for water and ions
 *
@@ -50,6 +50,7 @@ MASS  12  BAR 137.32700 BA ! Barium Ion
 MASS  13  ZN   65.37000 ZN ! zinc (II) cation
 MASS  14  CAD 112.41100 CD ! cadmium (II) cation
 MASS  15  CLA  35.45000 CL ! Chloride Ion
+MASS  16  MN  54.93800  MN  ! Manganese ion  
 
 default first none last none
 
@@ -143,6 +144,11 @@ GROUP
 ATOM CLA  CLA -1.00
 PATCHING FIRST NONE LAST NONE
 
+RESI MN2       2.00 ! Manganese Ion
+GROUP
+ATOM MN   MN   2.00
+PATCHING FIRST NONE LAST NONE
+
 END
 
 read para card flex append
@@ -165,6 +171,7 @@ MASS  12  BAR 137.32700 ! Barium Ion
 MASS  13  ZN   65.37000 ! zinc (II) cation
 MASS  14  CAD 112.41100 ! cadmium (II) cation
 MASS  15  CLA  35.45000 ! Chloride Ion
+MASS  16  MN  54.93800  ! Manganese Ion
 
 BONDS
 !
@@ -254,6 +261,9 @@ CAD    0.000000  -0.120000     1.357000 ! Cadmium
                    ! S. Marchand and B. Roux, from delta delta G
 CLA      0.0       -0.150      2.27     ! Chloride
                    ! D. Beglovd and B. Roux, dA=-83.87+4.46 = -79.40 kcal/mol
+MN      0.0       -0.0150    1.18500  ! Manganese ion
+                                      ! Example: from Roux et al., dA = -441.65 kcal/mol
+
 
 NBFIX
 !              Emin         Rmin

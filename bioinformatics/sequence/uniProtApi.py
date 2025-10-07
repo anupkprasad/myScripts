@@ -1,10 +1,19 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on 2025-08-05 (Y/M/D) at 13:16
+@author: Anup K. Prasad
+email: anupkprasad121@gmail.com
+"""
+
 import requests
 import time
 import argparse
 
-def search_uniprot_ids():
-    # Only search by text string, UniProt REST API supports simple keyword search
+def getUniprotIds(query:str=None):
+    """Only search by text string, UniProt REST API supports simple keyword search
     query = 'catalytically inactive AND organism_id:9606 AND keyword:Kinase'
+    """
     url = "https://rest.uniprot.org/uniprotkb/search"
     params = {
         "query": query,
@@ -19,22 +28,20 @@ def search_uniprot_ids():
     return ids
 
 
-
-def fetch_uniprot_sequence(uniprot_id):
+def getUniprotSequence(uniprot_id, domain="kinase"):
     url = f"https://rest.uniprot.org/uniprotkb/{uniprot_id}.json"
     response = requests.get(url)
     response.raise_for_status()
     record = response.json()
 
     sequence = record.get("sequence", {}).get("value", "")
-    kinase_domains = []
-
+    domainResult = []
     for feature in record.get("features", []):
-        if feature["type"] == "Domain" and "kinase" in feature.get("description", "").lower():
+        if feature["type"] == "Domain" and domain in feature.get("description", "").lower():
             start = int(feature["location"]["start"]["value"]) - 1
             end = int(feature["location"]["end"]["value"])
-            kinase_seq = sequence[start:end]
-            kinase_domains.append((start + 1, end, kinase_seq)) ## has three elements: start, end, sequence
+            domain_seq = sequence[start:end]
+            domainResult.append((start + 1, end, domain_seq)) ## has three elements: start, end, sequence
 
   
     data = record
@@ -53,19 +60,11 @@ def fetch_uniprot_sequence(uniprot_id):
     return {
         "uniprot_id": uniprot_id,
         "full_sequence": sequence,
-        "kinase_domains": kinase_domains, # List of tuples (start, end, sequence)
+        "kinase_domains": domainResult, # List of tuples (start, end, sequence)
         "header": header
     }
 
-def save_tsv(data, filename="pseudokinases.tsv"):
-    with open(filename, "w") as f:
-        f.write("UniProtID\tFullLength\tKinaseDomainRanges\tKinaseSequences\n")
-        for entry in data:
-            ranges = ",".join([f"{start}-{end}" for start, end, _ in entry["kinase_domains"]])
-            sequences = ",".join([seq for _, _, seq in entry["kinase_domains"]])
-            f.write(f"{entry['uniprot_id']}\t{entry['full_sequence']}\t{ranges}\t{sequences}\n")
-
-def save_fasta(data, filename="pseudokinases.fasta"):
+def saveFasta(data, filename="pseudokinases.fasta"):
     with open(filename, "w") as f:
         for entry in data:
             f.write(f">{entry['uniprot_id']}_full\n{entry['full_sequence']}\n")
@@ -73,16 +72,16 @@ def save_fasta(data, filename="pseudokinases.fasta"):
                 f.write(f">{entry['uniprot_id']}_domain{i}_{start}-{end}\n{seq}\n")
 
 
-def save_fasta_seperateKD_fullLength(data, filePrefix="uniprotseqs"):
+def saveFastaKDnfullLength(data, filePrefix="uniprotseqs"):
     ### data is a list of dictionaries with keys: uniprot_id, full_sequence, kinase_domains, header
     with open(filePrefix + "_full_length.fasta", "w") as f:
         for entry in data:
-            f.write(f">full_length|{entry['header']}\n{entry['full_sequence']}\n")
+            f.write(f">FullLength|{entry['header']}\n{entry['full_sequence']}\n")
 
     with open(filePrefix + "_kinase_domains.fasta", "w") as f:
         for entry in data:
             for i, (start, end, seq) in enumerate(entry["kinase_domains"], 1):
-                f.write(f">kinase_domain{i}_{start}-{end}|{entry['header']}\n{seq}\n")
+                f.write(f">KinDom{i}_{start}-{end}|{entry['header']}\n{seq}\n")
 
 
 
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fetch human pseudokinase sequences from UniProt")
     parser.add_argument("uniprot_ids", help="Enter a uniprot ID" )
     args = parser.parse_args()
-    result = fetch_uniprot_sequence(args.uniprot_ids)
+    result = getUniprotSequence(args.uniprot_ids)
     print("\n")
     print(f"Fetched sequence for {args.uniprot_ids}")
     print(f"Full sequence length: {result['full_sequence']}")

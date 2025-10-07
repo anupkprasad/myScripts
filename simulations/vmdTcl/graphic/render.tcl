@@ -4,7 +4,7 @@
 # Ph.D @IITB-Monash Research Academy
 # get image of each frames for movie formations
 # get the frames in the movie
-proc snapshot {{dim 2000} {filename ""}} {
+proc snapshot {{filename ""} {dim 2000}} {
 	display depthcue off
 	if {$filename eq ""} {
 		set frm [molinfo top get frame]
@@ -45,3 +45,27 @@ proc snap360degree {{angleIncrement 3}} {
 		rotate y by $angleIncrement
 	}
 }
+
+proc makeRockingMovie {numframes amplitude period} {
+	## If amplitude = 10 → the molecule will swing +10° to one side and -10° to the other side.
+	## 50 → period (frames per full swing)
+    set molid top   ;# Use the top molecule loaded
+    display resetview
+    axes location off
+    display projection orthographic
+
+    for {set frame 0} {$frame < $numframes} {incr frame} {
+        # Calculate sinusoidal rocking angle
+        set angle [expr {$amplitude * sin(2.0 * 3.1415926 * $frame / $period)}]
+
+        # Reset and apply rotation
+        display resetview
+        rotate y by $angle
+
+        # Render to file
+        set filename [format "frame_%04d.tga" $frame]
+        render TachyonInternal $filename
+    }
+    puts "Rocking movie frames saved. Use ffmpeg to compile into a video."
+}
+

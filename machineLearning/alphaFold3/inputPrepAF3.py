@@ -64,6 +64,18 @@ def generateAF3InputJson(
                         "id": ["L"],  # Example ligand ID
                         "ccdCodes": [ligand]  # Example CCD code for ligands
                     }
+                },
+                {
+                    "ligand": {
+                        "id": ["I"],
+                        "ccdCodes": ["MG"]
+                }
+                },
+                {
+                    "ligand": {
+                        "id": ["J"],
+                        "ccdCodes": ["MG"]
+                }
                 }
             ],
             "modelSeeds": model_seeds
@@ -144,26 +156,6 @@ def generateMultichainAF3InputJson(
     with open(output_file, "w") as f:
         json.dump(af3_input, f, indent=2)
     print(f" AlphaFold 3 input JSON saved to: {output_file}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

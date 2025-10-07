@@ -27,7 +27,7 @@ proc mkdirifnotexist { dirname } {
 }
 
 
-source "$pathVmdScript/centroid/propgate1.tcl"
+#source "$pathVmdScript/centroid/propgate1.tcl"
 proc getPropgatingPdbs {} {
 	delete_dockedfiles; # delete unwanted pdb files like docked.pdb
 	mkdirifnotexist prop_str

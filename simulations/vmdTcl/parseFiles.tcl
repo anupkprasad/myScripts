@@ -82,7 +82,7 @@ proc loadCifAF3 {{pattern "seed"}} {
 	set i 1
 	foreach d $dir {
 		set filecif [glob ./$d/*.cif]
-		puts $d
+		#puts $d
 		if {$i ==1} {
 			mol new $filecif
 		} else {
@@ -93,7 +93,7 @@ proc loadCifAF3 {{pattern "seed"}} {
 }
 
 
-proc loadCifAF3MultiMolecules {{dirPrefix ""} {refStr "DCLK1_KD.pdb"} {KDResids "resid 390 to 648 and name CA"}} {
+proc loadCifAF3MultiMolecules {{dirPrefix ""} {refStr ""} {KDResids "resid 390 to 648 and name CA"}} {
 	if {$refStr ne ""} {
 		### load and represent refernce structure
 		global refStructures
@@ -144,7 +144,7 @@ proc loadCifAF3MultiMolecules {{dirPrefix ""} {refStr "DCLK1_KD.pdb"} {KDResids 
             loadCifAF3
         }
 		if {$refStr ne ""} {
-        	trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and resid 0 to 258 and name CA and chain A"
+        	trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and ${KDResids}"
 		}
 		#mol showrep top 0 off
         ### change default represention to KD selection only
@@ -166,6 +166,99 @@ proc loadCifAF3MultiMolecules {{dirPrefix ""} {refStr "DCLK1_KD.pdb"} {KDResids 
         incr i
     }
 }
+
+
+
+
+
+proc loadCifAF3MultiMoleculesLigand {{dirPrefix ""} {refStr ""} {KDResids ""}} {
+	if {$refStr ne ""} {
+		### load and represent refernce structure
+		global refStructures
+		mol new $refStructures/$refStr
+		set refid [molinfo top]
+		mol modselect 0 top "protein and ${KDResids}"
+		mol modcolor 0 top ColorID 8
+		# Create a new representation for non-KD
+		mol selection "protein and not ${KDResids}"
+		mol representation NewCartoon
+		mol color ColorID 2
+		mol addrep top
+	}
+
+    # Set the base path
+    set base_path [pwd]
+    set base_path [file normalize "."]
+    puts "Base path is: $base_path"
+
+    # Get the list of all entries in the directory
+    set entries [glob -nocomplain -directory $base_path *]
+    # Filter only directories with the given prefix
+    set directories {}
+	if {$dirPrefix eq ""} {
+		puts "Error: Provide directory prefix."
+		return
+	}
+    foreach entry $entries {
+        if {[file isdirectory $entry]} {
+            set dir_name [file tail $entry]
+            if {[string match ${dirPrefix}* $dir_name]} {
+                lappend directories $entry
+            }
+        }
+    }
+
+    # Sort for deterministic order (optional)
+    set directories [lsort -dictionary $directories]
+
+    # Loop over all matched directories
+    set i 1
+    foreach dir $directories {
+        puts "Loading directory: $dir"
+        cd $dir
+		set dirname [file tail $dir]
+		set uniprot_id [lindex [split $dirname "_"] 1]
+		set kd_id [lindex [split $dirname "_"] 2]
+		
+        if {$i == 1} {
+            loadCifAF3
+        } else {
+            loadCifAF3
+        }
+		if {$refStr ne ""} {
+        	trajAlignTwoMol $refid top "backbone and ${KDResids}" "backbone and ${KDResids}"
+		}
+		mol rename top ${uniprot_id}_${kd_id}
+		trajAlign
+
+		# #mol showrep top 0 off
+        # ### change default represention to KD selection only
+        # mol modselect 0 top "protein and ${KDResids}"
+        # # Create a new representation for non-KD
+		# mol selection "protein and not ${KDResids}"
+		# mol representation NewCartoon
+		# mol color ColorID 4
+		# mol addrep top
+		# Create a new representation for chain B
+		mol selection "not protein"
+		mol representation Licorice
+		mol color ColorID 4
+		mol addrep top
+				
+		### diplay of
+        mol off top
+        cd $base_path
+        incr i
+    }
+}
+
+
+
+
+
+
+
+
 
 proc addCifAF3 {{rename ""}} {
     set dir [lsort -increasing [glob seed*]]

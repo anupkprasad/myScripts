@@ -314,13 +314,13 @@ proc sysSetup {{molid top} {cter_amidation "No"}} {
 	constrinedFixedFiles
 
 	exec cp -r $pathSetup/protein/equilibration ./
-	set pbcinfo [lindex [get_cell] 0]
+	set pbcinfo [lindex [getCellDimention] 0]
 	insert_lines_in_file ./equilibration/equilibration.inp 50 $pbcinfo
 
 	exec cp -r $pathSetup/protein/prod1 ./
 	exec cp -r $pathSetup/protein/parameter ./
 
-	sys_info top yes
+	getSysInfo top yes
 }
 
 
@@ -335,7 +335,7 @@ proc sysSetupSDS {{molid top} {cter_amidation "No"}} {
 	constrinedFixedFiles
 
 	exec cp -r $pathSetup/proteinSDS/equilibration ./
-	set pbcinfo [lindex [get_cell] 0]
+	set pbcinfo [lindex [getCellDimention] 0]
 	insert_lines_in_file ./equilibration/equilibration.inp 50 $pbcinfo
 
 	exec cp -r $pathSetup/proteinSDS/prod1 ./

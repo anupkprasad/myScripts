@@ -14,6 +14,7 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
     """
     data = []
     with open(input_file, 'r') as infile:
+        first_header = True
         for line in infile:
             if not line.startswith('>'):
                 line = line.strip()
@@ -21,7 +22,11 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
                 if line:  # Skip empty lines
                     data.append(line)
             else:
-                data.append('\n' + line.strip() + '\n')  # Write header lines
+                if first_header:
+                    data.append(line.strip() + '\n')  # First header without leading newline
+                    first_header = False
+                else:
+                    data.append('\n' + line.strip() + '\n')  # Subsequent headers with leading newline
     # Write to output file in single-line format
     with open(output_file, 'w') as outfile:
         for line in data:
@@ -36,5 +41,5 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
 
 
 
-path = "/mnt/mydrive/alpfaFold3/dynamics/PRKACA(PKA)"
-multi2SingleLineFasta(input_file=path + "/PRKACA_KD_tail_query.fasta", output_file= path + "/PRKACA_KD_tail_query.fasta")
+path = "/mnt/mydrive/others/prof_jacek_gaertig"
+multi2SingleLineFasta(input_file=path + "/JanA_plks.fasta", output_file= path + "/JanA_plks_processed.fasta")

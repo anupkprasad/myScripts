@@ -2,13 +2,62 @@ from pyrosetta import *
 from pyrosetta.rosetta.protocols.minimization_packing import MinMover
 from pyrosetta.rosetta.core.kinematics import MoveMap
 
-init()
+def clean_vmd_pdb(input_pdb, output_pdb):
+    with open(input_pdb) as f_in, open(output_pdb, 'w') as f_out:
+        for line in f_in:
+            if line.startswith(('ATOM', 'HETATM')) and len(line) >= 54:
+                atom = line[12:16]    # Atom name (columns 13-16)
+                altloc = line[16]     # AltLoc (column 17)
+                resname = line[17:20] # Residue name (18-20)
+                chain = line[21]      # Chain ID (column 22)
+                rest = line[22:]      # Remaining line (starting from residue number)
+
+                # Fix altloc if it's a number (like '1') → treat it as empty
+                altloc = ' ' if altloc not in ['A', 'B', ' '] else altloc
+
+                # Format properly
+                new_line = (
+                    line[:12] +
+                    f"{atom:<4}" +      # Atom name (left-aligned)
+                    f"{altloc}" +
+                    f"{resname:>3}" +   # Residue name (right-aligned)
+                    f"{chain}" +
+                    rest
+                )
+                f_out.write(new_line)
+            else:
+                f_out.write(line)
 
 
-path = "/mnt/mydrive/pseudokinase/ephb6_human_amsa_atemp/pdbs/"
+
+
+
+
+
+init(extra_options='-extra_res_fa /mnt/mydrive/temp/GTP.params')
+
+path = "/mnt/mydrive/pseudokinase/AF3/gtp_o15197_amsa_atemp/pdbs/"
+
 # Load complex (protein + ATP ligand)
-pose = pose_from_pdb(path + "8_H.pdb")
+pose = pose_from_pdb(path + "0.pdb")
+pose.dump_pdb(path + "original_complex.pdb")
 
+protein = pose.split_by_chain(1)
+ligand = pose.split_by_chain(2)
+
+# Print chain-residue info for debugging
+residue_count = pose.total_residue()
+chain_count = pose.conformation().num_chains()
+for i in range(1, pose.total_residue() + 1):
+    res = pose.residue(i)
+    print(f"{i}: {res.name()} chain={pose.pdb_info().chain(i)}")
+
+
+
+
+
+
+djflkdj
 # Use ref2015 full-atom score function
 scorefxn = get_fa_scorefxn()
 

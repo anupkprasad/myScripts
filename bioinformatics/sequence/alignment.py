@@ -34,3 +34,7 @@ def viewAlignment(fasta_file: str, port: int = 8050):
     print(f"Launching viewer at http://127.0.0.1:{port}/")
     app.run(port=port, debug=True)
 
+
+
+path = "/mnt/mydrive/pseudokinase/James_murphy/AF3_ions/pseudokinases_kinase_domains_ALIGNED.fasta"
+viewAlignment(fasta_file=path, port=8050)

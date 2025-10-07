@@ -14,10 +14,10 @@ proc alignMultiMolid {{molid_refid 0} {molid_align top} {sel "protein and backbo
 	}
 }
 
-proc getSequence {{molid top}} {
-	set aa_triple { ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR}
-	set aa_single { A C D E F G H I K L M N P Q R S T V W Y }
-	set sel [atomselect $molid "protein"]
+proc getSequence {{molid top} {selection "protein"} {NH2_check "No"}} {
+	set aa_triple { ALA CYS ASP GLU PHE GLY HIS ILE LYS LEU MET ASN PRO GLN ARG SER THR VAL TRP TYR HSE} ; ### HSE alias for HIS
+	set aa_single { A C D E F G H I K L M N P Q R S T V W Y H}; # last H for HSE
+	set sel [atomselect $molid $selection]
 	set uresid [lsort -unique [$sel get resid]]
 	## sorting the prod_list according ASCII
 	set uresid [lsort -dictionary $uresid]
@@ -30,16 +30,24 @@ proc getSequence {{molid top}} {
 	    append amino_acids [lindex $aa_single $aa_in]
 	    $sel_rid delete
 	}
-	set cter [atomselect $molid "resid [lindex $uresid end]"]
-	set cter_atms [$cter get name]
-	set is_NH2 "No"
-	if {[lsearch -exact $cter_atms "NT"] >= 0} {
-    append amino_acids "-NH2"
-    set is_NH2 "Yes"
-	}
 	$sel delete
-	return [list $amino_acids $is_NH2]
+	set output $amino_acids
+	## check for NH2 at C-terminal
+	if {$NH2_check != "No"} {
+		set cter [atomselect $molid "resid [lindex $uresid end]"]
+		set cter_atms [$cter get name]
+		set is_NH2 "No"
+		if {[lsearch -exact $cter_atms "NT"] >= 0} {
+			append amino_acids "-NH2"
+			set is_NH2 "Yes"
+		}
+		$cter delete
+		set output [list $amino_acids $is_NH2]
+	}
+	return $output
 }
+
+
 
 proc getResnameResid { {molid top} {selection protein}} {
 	set sel [atomselect $molid $selection]
@@ -56,6 +64,24 @@ proc getResnameResid { {molid top} {selection protein}} {
     puts "Last:  $b"
 	$sel delete
 }
+
+
+
+proc getResid { {molid top} {selection protein}} {
+	set sel [atomselect $molid $selection]
+	set uresid [lsort -unique [$sel get resid]]
+	## sorting the prod_list according ASCII
+	set uresid [lsort -dictionary $uresid]
+	# Print first and last elements
+    set a [lindex $uresid 0]
+    set b [lindex $uresid end]
+    puts "First: $a"
+    puts "Last:  $b"
+	$sel delete
+	return "$a to $b"
+}
+
+
 
 # change resid for each chain and then set sel [atomselect top all]; $sel writepdb name.pdb
 proc changeResidOfChain {{chainId} {start_resid}} {
@@ -174,6 +200,21 @@ proc getCellDimention {{molid top}} {
 }
 
 
+proc getCharge {{sel "all"}} {
+    set charge [eval "vecadd [[atomselect top $sel] get charge]"]
+    return $charge
+}
+
+
+
+proc getResname { {molid top} {selection all} } {
+    set sel [atomselect $molid $selection]
+    set resnames [lsort -unique [$sel get resname]]
+    $sel delete
+    return $resnames
+}
+
+
 proc getSysInfo {{molid top} {write_file "No"}} {
 	set aa_seqs "Amino acid Sequence: [lindex [getSequence $molid] 0]"
 	if {[lindex [getSequence $molid] 1] == "Yes"} {
@@ -184,7 +225,7 @@ proc getSysInfo {{molid top} {write_file "No"}} {
 	set cell_dimention "system dimention: [getCellDimention $molid]"
 	set frame "Frame_num: [molinfo top get numframes]"
 	set Schar "System charge: [eval "vecadd [[atomselect $molid all] get charge]"]"
-	set Pchar "Peptide charge: [eval "vecadd [[atomselect $molid "protein"] get charge]"]"
+	set Pchar "Protein charge: [eval "vecadd [[atomselect $molid "protein"] get charge]"]"
 	set all "all_atoms_num: [[atomselect top all] num]"
 	set wat "Water_num: [expr double ([[atomselect top "water"] num])/3]"
 	#set TFE "TFE: [expr double ([[atomselect top "resname TFE"] num])/9]"
@@ -270,3 +311,18 @@ proc writePdbWithActualIndex {{sel "protein"} {outfile} {molID top}} {
 	puts "PDB file with actual indices written to $outfile"
 }
 
+
+proc writeFasta {{molIDs top} {sel "protein"} {outfile ""}} {
+	if {$outfile eq ""} {
+		set outfile "sequence.fasta"
+	}
+	set fout [open $outfile w]
+	foreach molID $molIDs {
+		set name [molinfo $molID get name]
+		puts $fout ">Molecule_$molID : $name"
+		set seqs [getSequence $molID $sel]
+		puts $fout $seqs
+	}
+	close $fout
+	puts "FASTA file written to $outfile"
+}
