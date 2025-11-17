@@ -104,3 +104,64 @@ proc showAllMol {} {
         mol on $molid
     }
 }
+
+
+proc showAllComponents {{molid top}} {
+    # set color_index 1
+    # # Protein representation
+    # mol modselect 0 $molid "protein"
+    # mol modcolor 0 $molid ColorID $color_index        
+    # Ligand representation
+    set sel [atomselect $molid "resname AMP or resname ADP or resname ATP or resname GTP"]
+    if {[$sel num] > 0} {
+        mol selection "resname AMP or resname ADP or resname ATP or resname GTP"
+        mol representation Licorice
+        mol color ColorID 4
+        mol addrep $molid
+    }
+    
+    # MG ions
+    set sel [atomselect $molid "resname MG"]
+    if {[$sel num] > 0} {
+        mol selection "resname MG"
+        mol representation VDW
+        mol color ColorID 7
+        mol addrep $molid
+    }
+
+    # ions representation
+    set sel [atomselect $molid "ions"]
+    if {[$sel num] > 0} {
+        mol selection "ions"
+        mol representation VDW
+        mol color name
+        mol addrep $molid
+    }
+
+    # Water representation
+    set sel [atomselect $molid "water"]
+    if {[$sel num] > 0} {
+        mol selection "water"
+        mol representation lines
+        mol color name
+        mol addrep $molid
+    }
+
+}
+
+
+proc checkSimulationSetup { {molid top} } {
+    # show all components
+    showAllComponents $molid
+    pbc box
+    getSysInfo $molid
+}
+
+
+proc showCOMofSelection { {molid top} selection } {
+    set sel [atomselect $molid $selection]
+    set com [measure center $sel weight mass]
+    graphics top color red
+    graphics top sphere $com radius 1.0
+    puts "Center of mass for selection \"$selection\" in molecule $molid: $com"
+}

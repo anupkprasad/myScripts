@@ -80,6 +80,8 @@ proc adjustRangeForAlignment {mol1 range1 mol2 range2} {
 
 
 proc trajAlignTwoMol {{molidRef top} {molid top} {selRef "protein and backbone"} {sel ""}} {
+    ## it aligns each frame of molid to first frame of molidRef based on selRef atoms
+    
     # selRef: reference selection (on molidRef)
     # sel: mobile selection to be aligned (default = selRef)
     # molidRef: reference molid (usually static)
@@ -110,6 +112,47 @@ proc trajAlignTwoMol {{molidRef top} {molid top} {selRef "protein and backbone"}
         $allsel delete
     }
     $sel0 delete
+}
+
+
+
+proc alignTwoMol {{molidRef top} {molid top} {selRef "protein and backbone"} {sel ""}} {
+    ## it aligns first frame of molid to first frame of molidRef based on selRef atoms, then aligns all other frames of molid to its first frame based on sel atoms.
+    # selRef: reference selection (on molidRef)
+    # sel: mobile selection to be aligned (default = selRef)
+    # molidRef: reference molid (usually static)
+    # molid: trajectory molid (to be aligned)
+
+    # Reference selection fixed at frame 0
+    set sel0 [atomselect $molidRef $selRef frame 0]
+    puts "Reference atoms: [$sel0 num]"
+
+    if {$sel eq ""} {
+        set sel $selRef
+    }
+
+    set n [molinfo $molid get numframes]
+
+    for {set i 0} {$i < $n} {incr i} {
+        set allsel [atomselect $molid all frame $i]
+        set sel1 [atomselect $molid $sel frame $i]
+        if {$i == 0} {
+            set sel1_f0 [atomselect $molid $sel frame $i]
+            puts "Selected atoms: [$sel1 num]"
+            set M [measure fit $sel1_f0 $sel0]
+            $allsel move $M
+            continue
+        }
+        
+        set M [measure fit $sel1 $sel1_f0]
+        $allsel move $M
+
+        # cleanup per frame
+        $sel1 delete
+        $allsel delete
+    }
+    $sel0 delete
+    $sel1_f0 delete
 }
 
 

@@ -9,6 +9,40 @@ email: anupkprasad121@gmail.com
 import requests
 import time
 import argparse
+import pandas as pd
+
+def get_uniprot_pseudokinases():
+    """Fetch list of human pseudokinases from UniProt using REST API"""
+    url = "https://rest.uniprot.org/uniprotkb/search"
+    query = 'keyword:"Pseudokinase [KW-1028]" AND organism_id:9606'
+    
+    params = {
+        "query": query,
+        "fields": "accession,gene_names,protein_name,organism_name",
+        "format": "json",
+        "size": 500  # max per page
+    }
+    
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+    
+    results = []
+    for entry in data.get("results", []):
+        acc = entry["primaryAccession"]
+        gene = entry.get("genes", [{}])[0].get("geneName", {}).get("value", "")
+        name = entry.get("proteinDescription", {}).get("recommendedName", {}).get("fullName", {}).get("value", "")
+        org = entry.get("organism", {}).get("scientificName", "")
+        results.append({"UniProt_ID": acc, "Gene": gene, "Protein": name, "Organism": org})
+    
+    df = pd.DataFrame(results)
+    print(f"Retrieved {len(df)} pseudokinases")
+    return df
+
+# Example usage:
+df_pseudo = get_uniprot_pseudokinases()
+df_pseudo.to_csv("human_pseudokinases.csv", index=False)
+print(df_pseudo.head())
 
 def getUniprotIds(query:str=None):
     """Only search by text string, UniProt REST API supports simple keyword search
@@ -17,7 +51,7 @@ def getUniprotIds(query:str=None):
     url = "https://rest.uniprot.org/uniprotkb/search"
     params = {
         "query": query,
-        "fields": "accession",
+        "fields": "accession,gene_names,protein_name,organism_name",
         "format": "json",
         "size": 500  # max UniProt allows
     }

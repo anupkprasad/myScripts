@@ -228,10 +228,11 @@ proc getSysInfo {{molid top} {write_file "No"}} {
 	set Pchar "Protein charge: [eval "vecadd [[atomselect $molid "protein"] get charge]"]"
 	set all "all_atoms_num: [[atomselect top all] num]"
 	set wat "Water_num: [expr double ([[atomselect top "water"] num])/3]"
+	set pocket_charge "Pocket_charge: [getCharge "protein and (within 5.0 of resname AMP ADP ATP GTP MG)"]"
 	#set TFE "TFE: [expr double ([[atomselect top "resname TFE"] num])/9]"
 	#set Wat_TFE "Water:TFE= [expr double ([expr [[atomselect top "water"] num]/3])/[expr [[atomselect top "resname TFE"] num]/9]]"
 	set ion "Ions: [[atomselect top "ions"] num]"
- 	set all_info [list $aa_seqs\n$aa_num\n$Pchar\n$cell_dimention\n$Schar\n$frame\n$all\n$wat\n$ion]
+ 	set all_info [list $aa_seqs\n$aa_num\n$Pchar\n$cell_dimention\n$Schar\n$frame\n$all\n$wat\n$ion\n$pocket_charge]
  	if {$write_file != "No"} {
 		set outfile [open system_info.dat w]
 		puts $outfile $all_info
@@ -262,6 +263,18 @@ proc generatePdbsIdentifiers {n} {
     }
     return $identifiers
 }
+
+proc writePdbSel {{sel all} {outfile ""}} {
+	set selection [atomselect top $sel]
+	if {$outfile eq ""} {
+		set frame [molinfo top get frame]
+		set outfile "${frame}.pdb"
+	}
+	$selection writepdb $outfile
+	$selection delete
+	puts "PDB file written to $outfile"
+}
+
 
 
 
@@ -326,3 +339,88 @@ proc writeFasta {{molIDs top} {sel "protein"} {outfile ""}} {
 	close $fout
 	puts "FASTA file written to $outfile"
 }
+
+
+proc getDistBetTwoSelections {{molid top} {sel1 "name CA"} {sel2 "name CA"}} {
+    # Create atom selections
+    set selection1 [atomselect $molid $sel1]
+    set selection2 [atomselect $molid $sel2]
+
+    # Get positions
+    set pos1 [$selection1 get {x y z}]
+    set pos2 [$selection2 get {x y z}]
+
+    # Compute geometric center for sel1
+    set com1 {0.0 0.0 0.0}
+    set n1 [llength $pos1]
+    foreach p $pos1 {
+        set com1 [vecadd $com1 $p]
+    }
+    set com1 [vecscale [expr {1.0 / $n1}] $com1]
+
+    # Compute geometric center for sel2
+    set com2 {0.0 0.0 0.0}
+    set n2 [llength $pos2]
+    foreach p $pos2 {
+        set com2 [vecadd $com2 $p]
+    }
+    set com2 [vecscale [expr {1.0 / $n2}] $com2]
+
+    # Compute distance between geometric centers
+    set dist [veclength [vecsub $com1 $com2]]
+
+    # Clean up
+    $selection1 delete
+    $selection2 delete
+
+    return $dist
+}
+
+
+proc writeTwoSelectionsToOnePDB {molid1 seltext1 molid2 seltext2 outfile} {
+    # Create selections
+    set sel1 [atomselect $molid1 $seltext1]
+    set sel2 [atomselect $molid2 $seltext2]
+
+    # Temporary files to hold each selection
+    set tmp1 "tmp_sel1.pdb"
+    set tmp2 "tmp_sel2.pdb"
+
+    # Write selections to temporary PDBs
+    $sel1 writepdb $tmp1
+    $sel2 writepdb $tmp2
+
+    # Open output file
+    set fp [open $outfile w]
+
+    # Write selection 1
+    set f1 [open $tmp1 r]
+    while {[gets $f1 line] >= 0} {
+        if {[string match "ATOM*" $line] || [string match "HETATM*" $line]} {
+            puts $fp $line
+        }
+    }
+    close $f1
+
+    # Write selection 2
+    set f2 [open $tmp2 r]
+    while {[gets $f2 line] >= 0} {
+        if {[string match "ATOM*" $line] || [string match "HETATM*" $line]} {
+            puts $fp $line
+        }
+    }
+    close $f2
+    puts $fp "END"
+
+    # Close merged file
+    close $fp
+
+    # Clean up temporary files
+    file delete $tmp1 $tmp2
+    $sel1 delete
+    $sel2 delete
+
+    puts "Merged PDB written to $outfile (MODEL 1: molid $molid1, MODEL 2: molid $molid2)"
+}
+
+
