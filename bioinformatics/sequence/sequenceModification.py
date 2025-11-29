@@ -5,6 +5,7 @@ Created on 2025-06-20 (Y/M/D) at 15:44
 @author: Anup K. Prasad
 email: anupkprasad121@gmail.com
 """
+import argparse
 
 def multi2SingleLineFasta(input_file: str, output_file: str):
     """
@@ -39,7 +40,10 @@ def multi2SingleLineFasta(input_file: str, output_file: str):
             outfile.write('\n')
     print(f"Converted {input_file} to single-line format in {output_file}.")
 
-
-
-path = "/mnt/mydrive/others/prof_jacek_gaertig"
-multi2SingleLineFasta(input_file=path + "/JanA_plks.fasta", output_file= path + "/JanA_plks_processed.fasta")
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description="Convert multiline fasta to single line")
+	parser.add_argument("input", help="input fasta file")
+	parser.add_argument("output", help="output fasta file")
+	args = parser.parse_args()
+	multi2SingleLineFasta(args.input, args.output)
+	print("done")

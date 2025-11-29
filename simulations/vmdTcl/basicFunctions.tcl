@@ -424,3 +424,39 @@ proc writeTwoSelectionsToOnePDB {molid1 seltext1 molid2 seltext2 outfile} {
 }
 
 
+proc getPdblistFromSparcScore {filename} {
+    set data {}
+
+    # Open input file
+    set fh [open $filename r]
+    while {[gets $fh line] >= 0} {
+
+        # Skip lines not starting with an integer index
+        if {![regexp {^\s*\d+\s+} $line]} {
+            continue
+        }
+
+        # Extract: index score pdb_path
+        # Example: "4   105.9   pdbs/1d03_H.pdb"
+        if {[regexp {^\s*(\d+)\s+([\d\.]+)\s+(\S+)} $line -> idx score pdb_path]} {
+
+            # Extract only filename (strip directory)
+            set pdb [file tail $pdb_path]
+
+            lappend data [list $score $pdb]
+        }
+    }
+    close $fh
+
+    # Sort by numeric score
+    set sorted [lsort -real -index 0 $data]
+
+    # Extract only the pdb filenames
+    set pdb_only_list {}
+    foreach item $sorted {
+        lappend pdb_only_list [lindex $item 1]
+    }
+
+    return $pdb_only_list
+}
+

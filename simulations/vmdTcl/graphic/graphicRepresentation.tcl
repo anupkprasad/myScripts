@@ -158,7 +158,7 @@ proc checkSimulationSetup { {molid top} } {
 }
 
 
-proc showCOMofSelection { {molid top} selection } {
+proc drawCOMofSelection { {molid top} selection } {
     set sel [atomselect $molid $selection]
     set com [measure center $sel weight mass]
     graphics top color red

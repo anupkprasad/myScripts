@@ -24,6 +24,7 @@ gmx grompp -p topol.top -c nvt.gro -r nvt.gro -t nvt.cpt -o npt.tpr -f ./mdp/npt
 gmx mdrun -v -deffnm npt
 
 gmx grompp -p topol.top -c npt.gro -r npt.gro -t npt.cpt -o md.tpr -f ./mdp/md.mdp -maxwarn 3
+gmx grompp -p topol.top -c npt.gro -r npt.gro -t npt.cpt -o md1.tpr -f ./mdp/md1.mdp -maxwarn 3
+gmx grompp -p topol.top -c npt.gro -r npt.gro -t npt.cpt -o md2.tpr -f ./mdp/md2.mdp -maxwarn 3
 
-# check the system
-echo 0 | gmx trjconv -f npt.gro -s md.tpr -o system.pdb -dump 0
+

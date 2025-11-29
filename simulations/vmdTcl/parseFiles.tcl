@@ -42,6 +42,7 @@ proc loadPdbs {{pdb_list ""}} {
 	}
 	set i 0
 	foreach pdb $pdb_list {
+		puts $pdb
 		if {$i == 0} {
 			mol new $pdb
 		} else {
