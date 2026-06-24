@@ -36,5 +36,7 @@ def viewAlignment(fasta_file: str, port: int = 8050):
 
 
 
-path = "/mnt/mydrive/pseudokinase/James_murphy/AF3_ions/pseudokinases_kinase_domains_ALIGNED.fasta"
-viewAlignment(fasta_file=path, port=8050)
+if __name__ == "__main__":
+    # Example usage - replace with your actual file path
+    # viewAlignment(fasta_file='path/to/alignment.fasta', port=8050)
+    pass

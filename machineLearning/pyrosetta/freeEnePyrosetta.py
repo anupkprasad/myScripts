@@ -127,6 +127,8 @@ def computeBindingEnergy(pdb, ion=None):
     return delta_G_bind
 
 
-# path = "/mnt/mydrive/pseudokinase/AF3/atp_o15197_amsa_atemp/pdbs/"
-# #pose = minimizePose(path + "0.pdb")
-# delta_G_bind = computeBindingEnergy(path + "0_min.pdb")
+if __name__ == "__main__":
+    # Example usage
+    # path = "/path/to/structures/"
+    # delta_G_bind = computeBindingEnergy(path + "0_min.pdb")
+    pass

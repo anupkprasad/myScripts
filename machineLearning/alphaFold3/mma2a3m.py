@@ -48,14 +48,12 @@ prefixes = [
 ]
 
 
-path = "/mnt/mydrive/alpfaFold3/dynamics/Custom_MSA/efgr_egfrFamily/"
+if __name__ == "__main__":
+    # Example usage
+    # path = "/path/to/msa/directory/"
+    # for file in prefixes:
+    #     remove_mma_patterns(path + file + '.fasta_A.mma', path + file + '.a3m')
 
-for file in prefixes:
-    print(path + file)
-    remove_mma_patterns(path + file + '.fasta_A.mma', path + file + '.a3m')
-
-
-jhdfkjd
 def main():
     parser = argparse.ArgumentParser(description='Convert an mma or cma file to an a3m file')
     parser.add_argument('input_file', type=str, help='Path to input file')

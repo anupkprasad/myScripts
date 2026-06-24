@@ -1,0 +1,34 @@
+# Development dependencies for myScripts
+# Install with: pip install -r requirements-dev.txt
+
+# Include all base requirements
+-r requirements.txt
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-xdist>=2.5.0
+
+# Code Quality & Formatting
+black>=22.0.0
+flake8>=4.0.0
+isort>=5.10.0
+pylint>=2.13.0
+mypy>=0.950
+
+# Documentation
+sphinx>=4.5.0
+sphinx-rtd-theme>=1.0.0
+sphinx-autodoc-typehints>=1.18.0
+
+# Development Tools
+ipython>=8.0.0
+jupyter>=1.0.0
+notebook>=6.4.0
+
+# Machine Learning (optional)
+PyRosetta>=3.13
+torch>=1.10.0
+
+# Version Control & Git
+pre-commit>=2.17.0

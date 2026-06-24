@@ -38,6 +38,7 @@ def renameFiles(path, prefix="dclk1_"):
         print(f"Renamed '{oldName}' to '{newName}'")
 
 
-#path = "/mnt/mydrive/alpfaFold3/dynamics/DCLK/DCLK_KD_tail/dclk1_amsa_atemp/0_sparc/sparc_included_H/simul_mode/allPdbs/"
-
-#renameFiles(path, prefix="6G")  # Call the function with the desired path and prefix
+if __name__ == "__main__":
+    # Example usage
+    # renameFiles("/path/to/files/", prefix="my_prefix_")
+    pass

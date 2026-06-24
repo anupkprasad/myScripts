@@ -117,7 +117,8 @@ def mergeGroFiles(gro_files, output_file = "complex.gro"):
 
 if __name__ == "__main__":
     # Example usage
-    gro_files = ["protein_processed.gro", "ATP.gro", "MG.gro"]
-    path = "/mnt/mydrive/pseudokinase/pseudoNcontrol_AF3/0_MD_simulation/atp_o14936kd2_kd2__amsa_atemp"
-    gro_files = [f"{path}/{file}" for file in gro_files]
-    mergeGroFiles(gro_files, output_file=f"{path}/complex.gro")
+    # gro_files = ["protein_processed.gro", "ATP.gro", "MG.gro"]
+    # path = "/path/to/simulation/directory"
+    # gro_files = [f"{path}/{file}" for file in gro_files]
+    # mergeGroFiles(gro_files, output_file=f"{path}/complex.gro")
+    pass

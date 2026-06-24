@@ -34,15 +34,13 @@ def clean_vmd_pdb(input_pdb, output_pdb):
 
 
 
-init(extra_options='-extra_res_fa /mnt/mydrive/temp/GTP.params')
-
-path = "/mnt/mydrive/pseudokinase/AF3/gtp_o15197_amsa_atemp/pdbs/"
-
-# Load complex (protein + ATP ligand)
-pose = pose_from_pdb(path + "0.pdb")
-pose.dump_pdb(path + "original_complex.pdb")
-
-protein = pose.split_by_chain(1)
+# Initialization and example usage should be in main()
+if __name__ == "__main__":
+    # init(extra_options='-extra_res_fa /path/to/params.params')
+    # path = "/path/to/pdbs/"
+    # pose = pose_from_pdb(path + "0.pdb")
+    # protein = pose.split_by_chain(1)
+    pass
 ligand = pose.split_by_chain(2)
 
 # Print chain-residue info for debugging

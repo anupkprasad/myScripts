@@ -149,12 +149,9 @@ if __name__ == "__main__":
 
 
 
-
-
-
-# cmatoFasta("/mnt/mydrive/others/rezwan/seq_rhl.cma",
-#              "/mnt/mydrive/others/rezwan/seq_rhl.fasta")
-
-
-# multi2SingleLineFasta("/mnt/mydrive/others/rezwan/seq_rhl.fasta",
-#                       "/mnt/mydrive/others/rezwan/seq_rhl_singleline.fasta")
+if __name__ == "__main__":
+    # Example usage of the functions above
+    # cmatoFasta("input.cma", "output.fasta")
+    # multi2SingleLineFasta("input.fasta", "output.fasta")
+    # a3mtoFasta("input.a3m", "output.fasta")
+    pass

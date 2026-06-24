@@ -57,13 +57,6 @@ def main(aln_file, query_id, format="fasta"):
     print("".join(f"{int(c*10)}" for c in conservation))  # crude visual, 0–10 scale
 
 
-msa_file = "/mnt/mydrive/alpfaFold3/dynamics/DCLK_with_tail/DCLK1/aligned.fasta"
-query_id = "NP_001317000"  # Replace with your actual query sequence ID
-
-
-main(msa_file, query_id)
-dsdf
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Query-centric MSA viewer with conservation and difference highlighting.")
     parser.add_argument("aln_file", help="Path to alignment file (FASTA or Clustal format).")

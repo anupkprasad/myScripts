@@ -42,6 +42,7 @@ def generateAF3InputJson(
     """
     if PTMs != []:
         PTMs = [{"ptmType": ptm["type"], "ptmPosition": ptm["position"]} for ptm in PTMs]
+        #Phosphoserine → "SEP", Phosphothreonine → "TPO", Phosphotyrosine → "PTR"
 
     if ligand:
         af3_input = {
@@ -224,4 +225,10 @@ def seqModification(file, modRemove = ["lowercase"]):
     
     print("Modified sequence saved to: ", file[:-6] + "Mod.fasta")
     return
+
+
+
+### Example  ###
+
+###generateAF3InputJson("mklk_horeseP", [0,100, 200, 300, 400], "QIKEIKKEELSGWDGIPLTKGEFSTLYKGEYHKSPVAIKVFSKSQARSIGIVRHTFNNEIRTMKKFDSPNILRIFGICIDETVTPPQFSIVMEYCELGTLRELLDKDKDIIFALRIVLVLQAAKGLYRLHHSEASPELHRNISSTSFLVTDGYKVKLAGFELSKTQTSISRGTKGKEAERVISAAYISPERLENVYRKYDIKAEIYSFGIVLWEIATGKVPFEGFDSKQIYQRVVMDRYQEPLGEDCPSQLQEIIDDCRSYEPSRRPSVKEILEKLSDF", "mklk_horese_phos.json", [{"type":"TPO", "position":173}, {"type":"SEP", "position":174}])
 

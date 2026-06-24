@@ -23,16 +23,14 @@ def createTopology(top_file, gro_file, output_file="topol.prmtop"):
     g.save(output_file, format="amber")
     print(f"Converted {top_file} and {gro_file} to {output_file}.")
 
-
-# path = "/mnt/mydrive/GT_project/ruili/Q8N5D6_34_UDPGlcA/equilibration/"
-
-# u = mda.Universe(path + "topol.prmtop", path + "pdb_ion.gro")
-# protein_charge = np.sum(u.select_atoms("protein").charges)
-# ligand_charge = np.sum(u.select_atoms("resname UGA").charges)
-# ion_charge = np.sum(u.select_atoms("resname MN").charges)
-
-# print("Protein charge:", protein_charge)
-# print("Ligand charge:", ligand_charge)
+if __name__ == "__main__":
+    # Example usage
+    # path = "/path/to/simulation/directory/"
+    # u = mda.Universe(path + "topol.prmtop", path + "pdb_ion.gro")
+    # protein_charge = np.sum(u.select_atoms("protein").charges)
+    # ligand_charge = np.sum(u.select_atoms("resname UGA").charges)
+    # ion_charge = np.sum(u.select_atoms("resname MN").charges)
+    pass
 # print("Ions charge:", ion_charge)
 # print("Net system charge:", np.sum(u.atoms.charges))
 # jf;lg
