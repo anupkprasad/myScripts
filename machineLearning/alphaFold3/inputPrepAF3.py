@@ -2,12 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on 2025-06-25 (Y/M/D) at 11:11
-@author: Anup K. Prasad
-email: anupkprasad121@gmail.com
-"""
-"""
 AF3_inputPrep.py
 Description: Script for preparing inputs for AlphaFold3.
+more information: https://github.com/google-deepmind/alphafold3/blob/main/docs/input.md
 """ 
 import json
 from typing import List
@@ -113,44 +110,57 @@ def generateMultichainAF3InputJson(
     model_seeds: List[int],
     sequence: List[str],
     output_file: str,
-    PTMs: List[dict]= [],
-    unpaired_msa: str= None,
-    paired_msa: str= None,
-    templates: List[str]=None,
+    PTMs: List = None,
+    unpaired_msa: str = None,
+    paired_msa: str = None,
+    templates: List[str] = None,
     chainID: List[str] = ["A", "B"]
 ):
     """
     Generates an AlphaFold3 input JSON file for multiple chains.
+
+    PTMs: per-chain modifications. Either:
+      - list of lists aligned with chainID, e.g.
+        [[], [{"type": "SEP", "position": 11}]]  # phospho only on chain B
+      - flat list applied to every chain (legacy), e.g.
+        [{"type": "SEP", "position": 11}]
+    Positions are 1-based (residue 1 = first amino acid). CCD codes:
+      Phosphoserine SEP, Phosphothreonine TPO, Phosphotyrosine PTR.
     """
+    def _format_ptms(ptm_list):
+        if not ptm_list:
+            return []
+        return [{"ptmType": ptm["type"], "ptmPosition": ptm["position"]} for ptm in ptm_list]
+
     if PTMs is None:
-        PTMs = []
+        PTMs = [[] for _ in sequence]
+    elif PTMs and isinstance(PTMs[0], dict):
+        # Legacy: same PTMs on all chains
+        PTMs = [_format_ptms(PTMs) for _ in sequence]
     else:
-        PTMs = [{"ptmType": ptm["type"], "ptmPosition": ptm["position"]} for ptm in PTMs]
+        PTMs = [_format_ptms(chain_ptms) for chain_ptms in PTMs]
+
+    if len(PTMs) != len(sequence):
+        raise ValueError(f"PTMs length ({len(PTMs)}) must match sequence length ({len(sequence)})")
+
+    sequences_block = []
+    for i, (cid, seq) in enumerate(zip(chainID, sequence)):
+        protein = {
+            "id": cid,
+            "sequence": seq,
+            "modifications": PTMs[i],
+            "templates": templates,
+        }
+        if i == 0:
+            protein["unpairedMsa"] = unpaired_msa
+            protein["pairedMsa"] = paired_msa
+        sequences_block.append({"protein": protein})
 
     af3_input = {
         "dialect": "alphafold3",
         "version": 1,
         "name": name,
-        "sequences": [
-            {
-                "protein": {
-                    "id": chainID[0],
-                    "sequence": sequence[0],
-                    "modifications": PTMs,
-                    "unpairedMsa": unpaired_msa,
-                    "pairedMsa": paired_msa,
-                    "templates": templates,
-                }
-            },
-            {
-                "protein": {
-                    "id": chainID[1],
-                    "sequence": sequence[1],
-                    "modifications": PTMs,
-                    "templates": templates,
-                }
-            }
-        ],
+        "sequences": sequences_block,
         "modelSeeds": model_seeds
     }
 
@@ -228,7 +238,102 @@ def seqModification(file, modRemove = ["lowercase"]):
 
 
 
-### Example  ###
+USAGE = """
+Usage: inputPrepAF3.py
+======================
 
-###generateAF3InputJson("mklk_horeseP", [0,100, 200, 300, 400], "QIKEIKKEELSGWDGIPLTKGEFSTLYKGEYHKSPVAIKVFSKSQARSIGIVRHTFNNEIRTMKKFDSPNILRIFGICIDETVTPPQFSIVMEYCELGTLRELLDKDKDIIFALRIVLVLQAAKGLYRLHHSEASPELHRNISSTSFLVTDGYKVKLAGFELSKTQTSISRGTKGKEAERVISAAYISPERLENVYRKYDIKAEIYSFGIVLWEIATGKVPFEGFDSKQIYQRVVMDRYQEPLGEDCPSQLQEIIDDCRSYEPSRRPSVKEILEKLSDF", "mklk_horese_phos.json", [{"type":"TPO", "position":173}, {"type":"SEP", "position":174}])
+This file is a function module. Import functions and call them from Python.
+
+Run:
+    python3 your_script.py
+
+1) Single-chain AF3 JSON
+------------------------
+from inputPrepAF3 import generateAF3InputJson
+
+generateAF3InputJson(
+    name="job_single_chain",
+    model_seeds=[0, 100, 200],
+    sequence="MSSIGTGYDLSASTF",
+    output_file="single_chain.json",
+    PTMs=[{"type": "SEP", "position": 11}],  # 1-based index
+    unpaired_msa=None,
+    paired_msa=None,
+    templates=None,
+    chainID="A",
+)
+
+2) Single-chain with ligand
+---------------------------
+generateAF3InputJson(
+    name="job_with_ligand",
+    model_seeds=[0, 100, 200],
+    sequence="MSSIGTGYDLSASTF",
+    output_file="single_chain_ligand.json",
+    PTMs=[],
+    ligand="ATP",  # CCD code
+)
+
+3) Multi-chain AF3 JSON (different PTMs per chain)
+---------------------------------------------------
+from inputPrepAF3 import generateMultichainAF3InputJson
+
+generateMultichainAF3InputJson(
+    name="job_multichain",
+    model_seeds=[0, 100, 200],
+    sequence=[
+        "AAAAA",
+        "MSSIGTGYDLSASTF",
+    ],
+    output_file="multichain.json",
+    chainID=["A", "B"],
+    PTMs=[
+        [],  # chain A
+        [{"type": "SEP", "position": 11}],  # chain B
+    ],
+    unpaired_msa=None,
+    paired_msa=None,
+    templates=None,
+)
+
+4) Multi-chain legacy PTM mode (same PTM applied to all chains)
+----------------------------------------------------------------
+generateMultichainAF3InputJson(
+    name="job_multichain_legacy",
+    model_seeds=[0, 100, 200],
+    sequence=["AAAAA", "SSSSS"],
+    output_file="multichain_legacy.json",
+    PTMs=[{"type": "SEP", "position": 2}],
+)
+
+5) Convert custom MSA file to one-line AF3 MSA string
+------------------------------------------------------
+from inputPrepAF3 import customMSA
+
+sequence, oneline_msa = customMSA("my_alignment.a3m")
+
+# Then pass these values to AF3 JSON generator:
+generateAF3InputJson(
+    name="job_with_custom_msa",
+    model_seeds=[0],
+    sequence=sequence,
+    output_file="msa_input.json",
+    PTMs=[],
+    unpaired_msa=oneline_msa,
+    paired_msa="",
+    templates=[],
+)
+
+6) Clean FASTA/MSA sequence characters
+--------------------------------------
+from inputPrepAF3 import seqModification
+
+seqModification("input.fasta", modRemove=["lowercase", "-"])
+
+Notes:
+- PTM position is 1-based (first residue = 1).
+- PTM type uses CCD code, e.g. SEP, TPO, PTR.
+- For each modified site, residue identity should match PTM chemistry.
+- In multi-chain mode, PTMs should usually be provided per chain as list-of-lists.
+"""
 
