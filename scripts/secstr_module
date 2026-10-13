@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if command -v secstr-module >/dev/null 2>&1; then
+  exec secstr-module "$@"
+fi
+exec python "$ROOT/src/md/analysis/secStrModule.py" "$@"

@@ -1,4 +1,4 @@
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
 *.so
@@ -6,8 +6,14 @@ __pycache__/
 *.pyd
 *.pyc
 **/*.pyc
+*.egg-info/
+src/*.egg-info/
+.Python
+.eggs/
+dist/
+build/
 
-# Jupyter Notebook checkpoints
+# Jupyter
 .ipynb_checkpoints/
 
 # Environment
@@ -15,17 +21,31 @@ __pycache__/
 .venv/
 env/
 venv/
-*.egg-info/
-.Python
-*.manifest
-*.spec
+pip-wheel-metadata/
+*.whl
 
-# Logs
+# Logs / temp
 *.log
 *.out
 *.err
+*.tmp
+*.orig
+*.rej
+*.sav
+*.bak
+*.swp
+*~
 
-# Machine learning artifacts
+# Editors / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.Rhistory
+
+# ML artifacts
 *.h5
 *.hdf5
 *.ckpt
@@ -33,67 +53,32 @@ venv/
 *.pt
 *.pb
 *.onnx
-runs/             # for TensorBoard logs
+runs/
 wandb/
 
-# Simulation files (GROMACS, NAMD, LAMMPS)
+# Simulation runtime outputs (keep templates that are already tracked)
 *.xtc
 *.trr
-*.gro
-*.log
-*.tpr
+*.dcd
 *.edr
 *.cpt
-*.top
-*.itp
-*.dcd
+*.tpr
+*.gro
 *.psf
 *.coor
 *.vel
 *.xsc
 *.xst
-*.dyn
-*.parm7
-*.rst*
-*.nc
-*.mdp
-*.inp
-*.dat
-*.out
 
-# TCL-generated cache
-*.sav
-*.bak
-*.swp
-*~
+# Local dumps (keep README)
+backup/*
+!backup/README.md
 
-# Hidden OS files
-.DS_Store
-Thumbs.db
-
-# Editors and IDEs
-.vscode/
-.idea/
-*.sublime-workspace
-*.sublime-project
-
-# GitHub or system backups
-*.orig
-*.rej
-*.tmp
-
-# Conda or pip requirements cache
-pip-wheel-metadata/
-*.whl
-
-# Project-specific
-scriptsCollection/  # If it's a nested Git repo or clone
+# Do NOT ignore repo data/ (reference structures + force fields are tracked)
+# Local analysis outputs:
 output/
 results/
-data/
 figures/
 
-
-#others
-.png
-.svg
+# Nested clones
+scriptsCollection/

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Thin wrapper — prefers installed console script, else runs module file.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if command -v traj-cluster >/dev/null 2>&1; then
+  exec traj-cluster "$@"
+fi
+exec python "$ROOT/src/md/analysis/trajClustering.py" "$@"

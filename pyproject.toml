@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "myscripts"
+version = "1.1.0"
+description = "Computational biology toolkit: MD (GROMACS/NAMD/VMD), bioinformatics, AlphaFold3/PyRosetta"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "Anup K. Prasad", email = "anupkprasad121@gmail.com" }]
+license = { text = "MIT" }
+keywords = ["md", "bioinformatics", "alphafold", "vmd", "gromacs"]
+dependencies = [
+    "numpy>=1.21",
+    "scipy>=1.7",
+    "matplotlib>=3.5",
+    "pandas>=1.3",
+    "biopython>=1.80",
+    "MDAnalysis>=2.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+ml = ["torch>=1.10"]
+dev = ["pytest>=7.0", "black>=22.0", "isort>=5.10"]
+
+[project.scripts]
+traj-cluster = "md.analysis.trajClustering:main"
+secstr-module = "md.analysis.secStrModule:main"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["myscripts*", "md*", "bioinformatics*", "machine_learning*", "utils"]
+
+[tool.setuptools.package-data]
+"*" = ["*.tcl", "*.sh", "*.txt", "*.md"]

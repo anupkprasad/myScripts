@@ -1,8 +1,0 @@
-open_receptor ./pdbdir/381.pdb
-open_ligand ./pdbdir/381.pdb
-docking_correlation 1
-docking_refine 3
-max_docking_solutions 100
-docking_main_scan 20
-activate_docking
-save_matrix ./hexdock/381_matrix.hex

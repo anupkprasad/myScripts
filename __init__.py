@@ -1,1 +1,1 @@
-#!/usr/bin/env python
+"""Repo root marker. Installable packages live under src/ (pip install -e .)."""
