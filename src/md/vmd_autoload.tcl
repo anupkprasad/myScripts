@@ -16,9 +16,11 @@ namespace eval ::myscripts {
     variable REF
 }
 
-set ::myscripts::ROOT [file normalize [file join $::env(HOME) myScripts]]
+# Prefer repo root from the directory of this file (src/md -> ../..).
+# Falls back to ~/myScripts only if this copy is not inside a full checkout.
+set ::myscripts::ROOT [file normalize [file join [file dirname [info script]] ../..]]
 if {![file isdirectory [file join $::myscripts::ROOT src md]]} {
-    set ::myscripts::ROOT [file normalize [file join [file dirname [info script]] ../..]]
+    set ::myscripts::ROOT [file normalize [file join $::env(HOME) myScripts]]
 }
 
 set ::myscripts::DATA          [file join $::myscripts::ROOT data]

@@ -664,5 +664,16 @@ after idle {
 
 }
 
-source /home/anup/myScripts/callScripts.tcl
+# Portable path: prefer callScripts.tcl next to this .vmdrc (symlink-friendly),
+# else ~/myScripts/callScripts.tcl so any username works.
+set _callScripts [file join [file dirname [info script]] callScripts.tcl]
+if {![file exists $_callScripts]} {
+  set _callScripts [file join $::env(HOME) myScripts callScripts.tcl]
+}
+if {[file exists $_callScripts]} {
+  source $_callScripts
+} else {
+  puts "VMD: callScripts.tcl not found (tried next to .vmdrc and ~/myScripts/)"
+}
+unset -nocomplain _callScripts
 # End Theme File

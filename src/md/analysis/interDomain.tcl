@@ -8,6 +8,16 @@
 # Output files: lines starting with # are metadata. The next line is the
 # column header. Remaining lines are whitespace-separated values.
 #   pandas.read_csv(path, sep=r"\s+", comment="#")
+#
+# Clustering concept:
+#   geometcluster — k-means on geometry numbers (COM distance, axis angle,
+#     twist/dihedral). Groups frames with similar domain–domain geometry,
+#     not by atomic RMSD. Use when you care about domain separation,
+#     orientation, or twist states.
+#   rmsdcluster — average-linkage hierarchical clustering on RMSD of sel2
+#     after fitting sel1. Groups frames by how similar domain 2 looks once
+#     overall motion of domain 1 is removed. Use when you care about the
+#     structural pose of one domain relative to the other.
 
 proc InterDomain {args} {
     if {[llength $args] == 0} {
@@ -885,6 +895,8 @@ proc _id_circular_mean_deg {values} {
     return [expr {atan2($sum_s, $sum_c) * 180.0 / $pi}]
 }
 
+# geometcluster: k-means on z-scored geometry features (com / angle / dihedral).
+# Groups frames by domain–domain geometry states, not by atomic RMSD.
 proc _id_cmd_geometcluster {argv} {
     array set opt [_id_args $argv {molid sel1 sel2 first last stride ncluster outdir data maxiter features} {
         molid top
@@ -1150,6 +1162,8 @@ proc _id_clear_cluster_dirs {outdir} {
     }
 }
 
+# rmsdcluster: fit sel1, then hierarchical average-linkage on sel2 RMSD.
+# Groups frames by structural pose of domain 2 relative to domain 1.
 proc _id_cmd_rmsdcluster {argv} {
     array set opt [_id_args $argv {molid sel1 sel2 first last stride cutoff ncluster outdir} {
         molid top
